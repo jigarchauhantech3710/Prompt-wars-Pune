@@ -1,1385 +1,1339 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self';
-      script-src 'self' 'unsafe-inline'
-        https://www.gstatic.com
-        https://fonts.googleapis.com;
-      style-src 'self' 'unsafe-inline'
-        https://fonts.googleapis.com
-        https://fonts.gstatic.com;
-      font-src https://fonts.gstatic.com;
-      connect-src
-        https://generativelanguage.googleapis.com
-        https://firestore.googleapis.com
-        https://firebase.googleapis.com
-        https://identitytoolkit.googleapis.com
-        https://www.googleapis.com
-        https://securetoken.googleapis.com
-        https://firebaseinstallations.googleapis.com;
-      img-src 'self' data: https:;
-      frame-src 'none';
-      object-src 'none';
-    ">
-    <title>AdaptLearn - AI Learning Companion</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0F0F0F;
-            --card-bg: #1A1A2E;
-            --primary-blue: #4F8EF7;
-            --primary-blue-hover: #3b74d6;
-            --accent-green: #00D4AA;
-            --text-main: #FFFFFF;
-            --text-muted: #A0A0A0;
-            --border-color: #333333;
-            --error-bg: #3A1A1A;
-            --error-text: #FF6B6B;
-            --success-bg: #1A3A2E;
-            --success-text: #00D4AA;
-        }
-
-        [data-theme="light"] {
-            --bg-color: #F8F9FA;
-            --card-bg: #FFFFFF;
-            --primary-blue: #4F8EF7;
-            --primary-blue-hover: #3b74d6;
-            --accent-green: #00A383;
-            --text-main: #212529;
-            --text-muted: #6C757D;
-            --border-color: #DEE2E6;
-            --error-bg: #FFD2D2;
-            --error-text: #D32F2F;
-            --success-bg: #D1E7DD;
-            --success-text: #0F5132;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            font-size: 16px;
-        }
-
-        *:focus-visible {
-            outline: 3px solid var(--primary-blue);
-            outline-offset: 2px;
-        }
-
-        .skip-link {
-            position: absolute;
-            top: -100%;
-            left: 1rem;
-            background: var(--primary-blue);
-            color: #fff;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0 0 8px 8px;
-            font-weight: 500;
-            z-index: 9999;
-            transition: top 0.2s;
-        }
-
-        .skip-link:focus {
-            top: 0;
-        }
-
-        @media (prefers-reduced-motion: no-preference) {
-            @keyframes float {
-                0% {
-                    transform: translateY(0px) rotate(0deg);
-                    opacity: 0.8;
-                }
-
-                50% {
-                    transform: translateY(-20px) rotate(5deg);
-                    opacity: 0.4;
-                }
-
-                100% {
-                    transform: translateY(0px) rotate(0deg);
-                    opacity: 0.8;
-                }
-            }
-
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(10px);
-                }
-
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-
-            @keyframes skeletonLoading {
-                0% {
-                    background-position: 200% 0;
-                }
-
-                100% {
-                    background-position: -200% 0;
-                }
-            }
-
-            .particle {
-                animation: float 6s infinite ease-in-out;
-            }
-
-            .skeleton {
-                animation: skeletonLoading 1.5s infinite;
-            }
-
-            .screen.active {
-                animation: fadeIn 0.4s ease forwards;
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
-            }
-        }
-
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            background: var(--primary-blue);
-            border-radius: 50%;
-            filter: blur(2px);
-        }
-
-        header {
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--card-bg);
-            z-index: 10;
-        }
-
-        .logo {
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--primary-blue);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .nav-actions {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        button {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            font-size: 1rem;
-            background-color: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-        }
-
-        button:hover {
-            background-color: var(--border-color);
-        }
-
-        button.primary {
-            background-color: var(--primary-blue);
-            color: #fff;
-            border: none;
-        }
-
-        button.primary:hover {
-            background-color: var(--primary-blue-hover);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-            flex: 1;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .screen.active {
-            display: flex;
-        }
-
-        #screen-landing {
-            justify-content: center;
-            text-align: center;
-        }
-
-        .hero-title {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            font-weight: 700;
-        }
-
-        .hero-tagline {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            margin-bottom: 3rem;
-        }
-
-        .auth-buttons {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .search-container {
-            width: 100%;
-            max-width: 600px;
-            margin-top: 4rem;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 1.25rem;
-            font-size: 1.25rem;
-            background: var(--card-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--text-main);
-            margin-bottom: 1rem;
-        }
-
-        .chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            margin-bottom: 2rem;
-        }
-
-        .chip {
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .chip:hover {
-            border-color: var(--primary-blue);
-            color: var(--primary-blue);
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 2rem;
-            width: 100%;
-            max-width: 700px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 1.5rem;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            background: var(--border-color);
-            height: 8px;
-            border-radius: 4px;
-            margin: 1rem 0 2rem 0;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            background: var(--accent-green);
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .radio-option {
-            display: block;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-            background: var(--bg-color);
-        }
-
-        .radio-option:hover {
-            border-color: var(--primary-blue);
-        }
-
-        .radio-option input {
-            margin-right: 1rem;
-        }
-
-        .roadmap {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            width: 100%;
-            max-width: 600px;
-            position: relative;
-        }
-
-        .roadmap::before {
-            content: '';
-            position: absolute;
-            left: 24px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: var(--border-color);
-            z-index: 0;
-        }
-
-        .roadmap-node {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            position: relative;
-            z-index: 1;
-            padding: 1rem;
-            background: var(--card-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
-
-        .roadmap-node.active {
-            border-color: var(--primary-blue);
-            box-shadow: 0 0 15px rgba(79, 142, 247, 0.2);
-        }
-
-        .roadmap-node.completed {
-            border-color: var(--accent-green);
-        }
-
-        .node-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: var(--bg-color);
-            border: 2px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .roadmap-node.active .node-icon {
-            border-color: var(--primary-blue);
-            color: var(--primary-blue);
-        }
-
-        .roadmap-node.completed .node-icon {
-            background: var(--accent-green);
-            border-color: var(--accent-green);
-            color: #000;
-        }
-
-        .lesson-layout {
-            display: flex;
-            gap: 2rem;
-            width: 100%;
-            height: 100%;
-        }
-
-        .lesson-content {
-            flex: 1;
-        }
-
-        .lesson-sidebar {
-            width: 300px;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .lesson-layout {
-                flex-direction: column;
-            }
-
-            .lesson-sidebar {
-                width: 100%;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                background: var(--card-bg);
-                padding: 1rem;
-                border-top: 1px solid var(--border-color);
-                z-index: 20;
-                box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.5);
-            }
-
-            .lesson-content {
-                padding-bottom: 200px;
-            }
-        }
-
-        .typewriter-text {
-            line-height: 1.6;
-            font-size: 1.1rem;
-            white-space: pre-wrap;
-        }
-
-        .typewriter-text p {
-            margin-bottom: 1rem;
-        }
-
-        .action-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .breadcrumb {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
-        }
-
-        textarea.open-answer {
-            width: 100%;
-            min-height: 120px;
-            padding: 1rem;
-            border-radius: 8px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            margin-top: 1rem;
-            font-size: 1rem;
-            resize: vertical;
-        }
-
-        .feedback-card {
-            padding: 1.5rem;
-            border-radius: 12px;
-            margin-top: 1rem;
-            display: none;
-        }
-
-        .feedback-card.error {
-            background: var(--error-bg);
-            border: 1px solid var(--error-text);
-            display: block;
-        }
-
-        .feedback-card.success {
-            background: var(--success-bg);
-            border: 1px solid var(--success-text);
-            display: block;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            width: 100%;
-        }
-
-        .stat-card {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--primary-blue);
-            margin: 0.5rem 0;
-        }
-
-        .bar-chart {
-            display: flex;
-            align-items: flex-end;
-            gap: 8px;
-            height: 150px;
-            margin-top: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 8px;
-        }
-
-        .bar {
-            flex: 1;
-            background: var(--primary-blue);
-            border-radius: 4px 4px 0 0;
-            min-height: 5px;
-            position: relative;
-        }
-
-        .bar span {
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 500px;
-            border: 1px solid var(--border-color);
-        }
-
-        .skeleton {
-            background: linear-gradient(90deg, var(--border-color) 25%, var(--card-bg) 50%, var(--border-color) 75%);
-            background-size: 200% 100%;
-            border-radius: 4px;
-        }
-
-        .skeleton-text {
-            height: 1.2rem;
-            margin-bottom: 0.5rem;
-            width: 100%;
-        }
-
-        .skeleton-text:last-child {
-            width: 80%;
-        }
-
-        .skeleton-title {
-            height: 2rem;
-            width: 60%;
-            margin-bottom: 1.5rem;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            border: 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' https://www.gstatic.com https://fonts.googleapis.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com;
+    font-src https://fonts.gstatic.com;
+    connect-src https://generativelanguage.googleapis.com https://firestore.googleapis.com
+      https://firebase.googleapis.com https://identitytoolkit.googleapis.com
+      https://www.googleapis.com https://securetoken.googleapis.com
+      https://firebaseinstallations.googleapis.com;
+    img-src 'self' data: https:;
+    frame-src 'none';
+    object-src 'none';
+  ">
+  <title>AdaptLearn — AI Learning Companion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080B14;
+      --surface: #0D1117;
+      --card: #111827;
+      --card2: #162032;
+      --border: #1E2D40;
+      --border2: #2A3F5A;
+      --blue: #3B82F6;
+      --blue2: #60A5FA;
+      --green: #10B981;
+      --green2: #34D399;
+      --amber: #F59E0B;
+      --purple: #8B5CF6;
+      --red: #EF4444;
+      --text: #F1F5F9;
+      --muted: #64748B;
+      --muted2: #94A3B8;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    [data-theme="light"] {
+      --bg: #F0F4F8;
+      --surface: #FFFFFF;
+      --card: #FFFFFF;
+      --card2: #EFF6FF;
+      --border: #CBD5E1;
+      --border2: #93C5FD;
+      --text: #0F172A;
+      --muted: #64748B;
+      --muted2: #475569;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Sora', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    *:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 4px; }
+
+    /* ── Skip link ── */
+    .skip-link {
+      position: absolute; top: -100%; left: 1rem;
+      background: var(--blue); color: #fff;
+      padding: 0.6rem 1.2rem; border-radius: 0 0 8px 8px;
+      font-weight: 600; z-index: 9999; transition: top .2s;
+    }
+    .skip-link:focus { top: 0; }
+
+    /* ── Animations ── */
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+      @keyframes pulse { 0%,100% { opacity:.6; } 50% { opacity:1; } }
+      @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @keyframes floatDot { 0%,100% { transform:translateY(0) scale(1); opacity:.5; } 50% { transform:translateY(-14px) scale(1.1); opacity:.9; } }
+      @keyframes scoreCount { from { transform:scale(.8); opacity:0; } to { transform:scale(1); opacity:1; } }
+      .screen.active { animation: fadeUp .35s ease both; }
+      .skeleton { animation: shimmer 1.6s infinite; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration:.01ms!important; transition-duration:.01ms!important; }
+    }
+
+    /* ── Header ── */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: .9rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(12px);
+    }
+    .logo { display:flex; align-items:center; gap:.5rem; font-weight:700; font-size:1.2rem; color:var(--blue2); }
+    .logo svg { width:28px; height:28px; }
+    .nav-r { display:flex; gap:.6rem; align-items:center; }
+    .xp-badge {
+      display:none; align-items:center; gap:.4rem;
+      background:var(--card2); border:1px solid var(--border2);
+      padding:.3rem .8rem; border-radius:99px; font-size:.85rem; font-weight:600; color:var(--blue2);
+    }
+    .xp-badge.show { display:flex; }
+
+    /* ── Buttons ── */
+    button {
+      font-family:'Sora',sans-serif; font-size:.95rem; font-weight:500;
+      padding:.6rem 1.2rem; border-radius:8px; border:1px solid var(--border);
+      background:var(--card); color:var(--text); cursor:pointer;
+      transition: all .18s ease;
+    }
+    button:hover { background:var(--border); }
+    button:active { transform:scale(.98); }
+    button:disabled { opacity:.45; cursor:not-allowed; transform:none; }
+    .btn-primary { background:var(--blue); color:#fff; border:none; font-weight:600; }
+    .btn-primary:hover { background:#2563EB; }
+    .btn-green { background:var(--green); color:#fff; border:none; font-weight:600; }
+    .btn-green:hover { background:#059669; }
+    .btn-sm { padding:.4rem .9rem; font-size:.85rem; }
+    .btn-icon { padding:.6rem; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-size:1rem; }
+
+    /* ── Screens ── */
+    .screen { display:none; flex-direction:column; align-items:center; padding:2rem 1.5rem; flex:1; width:100%; max-width:900px; margin:0 auto; }
+    .screen.active { display:flex; }
+    main { display:flex; flex:1; }
+
+    /* ── Modal ── */
+    .modal { position:fixed; inset:0; background:rgba(0,0,0,.75); display:none; justify-content:center; align-items:center; z-index:200; padding:1rem; }
+    .modal.open { display:flex; }
+    .modal-box { background:var(--card); border:1px solid var(--border2); border-radius:16px; padding:2rem; width:100%; max-width:480px; }
+
+    /* ── Cards ── */
+    .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.5rem; margin-bottom:1.2rem; width:100%; }
+    .card-wide { max-width:860px; }
+
+    /* ── Skeleton ── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--border) 25%, var(--card2) 50%, var(--border) 75%);
+      background-size: 200% 100%; border-radius:6px;
+    }
+    .sk-h { height:1.1rem; margin-bottom:.5rem; }
+    .sk-title { height:1.8rem; width:55%; margin-bottom:1.2rem; }
+    .sk-block { height:80px; margin-bottom:.8rem; }
+
+    /* ── Progress bar ── */
+    .prog-wrap { width:100%; background:var(--border); height:6px; border-radius:3px; overflow:hidden; margin:.8rem 0 1.5rem; }
+    .prog-fill { height:100%; background: linear-gradient(90deg, var(--blue), var(--green)); border-radius:3px; transition: width .4s ease; }
+
+    /* ── Landing ── */
+    #screen-landing { justify-content:center; text-align:center; gap:1.5rem; }
+    .hero-glow {
+      width:280px; height:280px; border-radius:50%;
+      background: radial-gradient(circle, rgba(59,130,246,.25) 0%, transparent 70%);
+      display:flex; align-items:center; justify-content:center;
+      margin: 0 auto 1rem;
+    }
+    .hero-icon { font-size:5rem; }
+    .hero-title { font-size:clamp(2rem,5vw,3rem); font-weight:700; line-height:1.15; }
+    .hero-title span { color:var(--blue2); }
+    .hero-sub { color:var(--muted2); font-size:1.05rem; max-width:500px; }
+    .auth-row { display:flex; gap:.8rem; flex-wrap:wrap; justify-content:center; margin-top:.5rem; }
+
+    /* ── Topic screen ── */
+    .topic-wrap { width:100%; max-width:620px; margin-top:2rem; }
+    .big-input {
+      width:100%; padding:1rem 1.25rem; font-size:1.1rem; font-family:'Sora',sans-serif;
+      background:var(--card); border:2px solid var(--border); border-radius:12px;
+      color:var(--text); margin-bottom:.8rem; transition: border-color .2s;
+    }
+    .big-input:focus { border-color:var(--blue); outline:none; }
+    .chips { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1.2rem; }
+    .chip {
+      padding:.35rem .9rem; border-radius:99px; background:var(--card2);
+      border:1px solid var(--border); font-size:.85rem; cursor:pointer;
+      transition: all .15s;
+    }
+    .chip:hover { border-color:var(--blue2); color:var(--blue2); }
+
+    /* ── Overview screen (theory+visuals) ── */
+    .overview-tabs { display:flex; gap:.5rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .tab-btn {
+      padding:.45rem 1rem; border-radius:8px; border:1px solid var(--border);
+      background:var(--card); font-size:.9rem; cursor:pointer; font-family:'Sora',sans-serif;
+      transition: all .15s;
+    }
+    .tab-btn.active { background:var(--blue); color:#fff; border-color:var(--blue); }
+
+    /* Lesson content rendering */
+    .lesson-body { font-size:1.05rem; line-height:1.8; color:var(--text); }
+    .lesson-body h3 { font-size:1.15rem; font-weight:600; color:var(--blue2); margin:1.4rem 0 .5rem; }
+    .lesson-body p { margin-bottom:1rem; }
+    .lesson-body .insight {
+      background:var(--card2); border-left:3px solid var(--green2);
+      padding:.8rem 1rem; border-radius:0 8px 8px 0; margin:1rem 0;
+      font-style:italic; color:var(--green2);
+    }
+    .lesson-body strong { color:var(--blue2); }
+
+    /* Diagram / visual area */
+    .diagram-wrap {
+      background:var(--card2); border:1px solid var(--border2);
+      border-radius:12px; padding:1.5rem; margin:1rem 0; overflow-x:auto;
+    }
+    .diagram-wrap svg { max-width:100%; height:auto; }
+
+    /* Example cards */
+    .example-grid { display:grid; gap:1rem; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); margin-top:1rem; }
+    .example-card {
+      background:var(--card2); border:1px solid var(--border); border-radius:12px;
+      padding:1.2rem; transition: border-color .2s;
+    }
+    .example-card:hover { border-color:var(--blue); }
+    .example-card .ex-icon { font-size:1.8rem; margin-bottom:.5rem; }
+    .example-card h4 { font-size:.95rem; font-weight:600; color:var(--blue2); margin-bottom:.4rem; }
+    .example-card p { font-size:.9rem; color:var(--muted2); line-height:1.6; }
+
+    /* Sidebar */
+    .learn-layout { display:flex; gap:1.5rem; width:100%; align-items:flex-start; }
+    .learn-main { flex:1; min-width:0; }
+    .learn-sidebar { width:220px; flex-shrink:0; display:flex; flex-direction:column; gap:.7rem; position:sticky; top:80px; }
+    @media(max-width:700px) {
+      .learn-layout { flex-direction:column; }
+      .learn-sidebar { width:100%; position:static; flex-direction:row; flex-wrap:wrap; }
+      .learn-sidebar button { flex:1; min-width:calc(50% - .35rem); }
+    }
+
+    /* ── 5-Q Final Quiz ── */
+    .quiz-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:.5rem; }
+    .quiz-counter { font-size:.9rem; color:var(--muted2); }
+    .q-card { background:var(--card2); border:1px solid var(--border); border-radius:12px; padding:1.5rem; margin-bottom:1rem; }
+    .q-text { font-size:1.05rem; font-weight:500; margin-bottom:1rem; }
+    .q-num { display:inline-block; background:var(--blue); color:#fff; font-size:.75rem; font-weight:700; padding:.2rem .55rem; border-radius:4px; margin-right:.5rem; }
+    .opt-label {
+      display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem;
+      border:1px solid var(--border); border-radius:8px; cursor:pointer;
+      margin-bottom:.5rem; transition: all .15s; background:var(--card);
+    }
+    .opt-label:hover { border-color:var(--blue); background:var(--card2); }
+    .opt-label input { accent-color:var(--blue); width:16px; height:16px; flex-shrink:0; }
+    .opt-label.correct { border-color:var(--green); background:rgba(16,185,129,.1); }
+    .opt-label.wrong { border-color:var(--red); background:rgba(239,68,68,.1); }
+    .opt-label.reveal { border-color:var(--green); background:rgba(16,185,129,.07); }
+
+    /* Score screen */
+    .score-ring-wrap { display:flex; flex-direction:column; align-items:center; margin:1rem 0 2rem; }
+    .score-ring { position:relative; width:160px; height:160px; }
+    .score-ring svg { transform:rotate(-90deg); }
+    .score-ring circle { fill:none; stroke-width:12; }
+    .score-ring .track { stroke:var(--border); }
+    .score-ring .fill { stroke:var(--green); stroke-linecap:round; transition: stroke-dashoffset 1.2s ease; }
+    .score-num { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; animation: scoreCount .5s ease both .3s; }
+    .score-num strong { font-size:2.2rem; font-weight:700; color:var(--green2); }
+    .score-num span { font-size:.8rem; color:var(--muted2); }
+    .score-breakdown { width:100%; max-width:520px; }
+    .score-row { display:flex; justify-content:space-between; align-items:center; padding:.55rem 0; border-bottom:1px solid var(--border); font-size:.9rem; }
+    .score-row:last-child { border:none; }
+    .badge-correct { background:rgba(16,185,129,.15); color:var(--green2); padding:.15rem .55rem; border-radius:4px; font-size:.8rem; font-weight:600; }
+    .badge-wrong { background:rgba(239,68,68,.15); color:#F87171; padding:.15rem .55rem; border-radius:4px; font-size:.8rem; font-weight:600; }
+
+    /* Dashboard */
+    .dash-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:1rem; width:100%; margin-bottom:1.5rem; }
+    .stat-tile { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.2rem; text-align:center; }
+    .stat-tile .val { font-size:2rem; font-weight:700; color:var(--blue2); }
+    .stat-tile .lbl { font-size:.82rem; color:var(--muted2); margin-top:.2rem; }
+    .mini-bar-wrap { display:flex; align-items:flex-end; gap:6px; height:80px; }
+    .mini-bar { flex:1; background:var(--blue); border-radius:3px 3px 0 0; min-height:4px; opacity:.7; }
+    .mini-bar:hover { opacity:1; }
+
+    /* Topic history */
+    .topic-row { display:flex; justify-content:space-between; align-items:center; padding:.7rem 1rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.5rem; }
+    .topic-row .name { font-size:.95rem; }
+    .topic-row .score-tag { background:var(--card2); border:1px solid var(--border2); border-radius:4px; padding:.15rem .6rem; font-size:.8rem; color:var(--blue2); font-family:var(--mono); }
+
+    /* Misc */
+    .hidden { display:none!important; }
+    .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+    .section-title { font-size:1.3rem; font-weight:600; margin-bottom:1rem; }
+    .muted { color:var(--muted2); }
+    .tag { display:inline-block; padding:.2rem .6rem; border-radius:4px; font-size:.78rem; font-weight:600; }
+    .tag-blue { background:rgba(59,130,246,.15); color:var(--blue2); }
+    .tag-green { background:rgba(16,185,129,.15); color:var(--green2); }
+    .tag-amber { background:rgba(245,158,11,.15); color:var(--amber); }
+    .divider { border:none; border-top:1px solid var(--border); margin:1.2rem 0; }
+    .spinner { width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%; animation:spin .7s linear infinite; display:inline-block; }
+    .breadcrumb { font-size:.85rem; color:var(--muted); margin-bottom:1rem; display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; }
+    .breadcrumb span { color:var(--text); }
+  </style>
 </head>
-
 <body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-    <div aria-live="polite" class="sr-only" id="aria-announcer" role="status"></div>
-    <div class="particles" id="particles"></div>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <div id="aria-live" aria-live="polite" class="sr-only" role="status"></div>
 
-    <header>
-        <div class="logo">🎓 AdaptLearn</div>
-        <div class="nav-actions">
-            <span id="xp-display" class="hidden">XP: <strong id="xp-val">0</strong></span>
-            <button id="btn-theme" aria-label="Toggle light/dark mode">🌓</button>
-            <button id="btn-settings" aria-label="Open settings">⚙️</button>
-            <button id="btn-logout" class="hidden" aria-label="Sign out">Sign Out</button>
-        </div>
-    </header>
-
-    <div id="settings-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-        <div class="modal-content card">
-            <h2 id="settings-title" style="margin-bottom: 1rem;">Settings</h2>
-            <div style="margin-bottom: 1.5rem;">
-                <label for="api-key" style="display:block; margin-bottom:0.5rem;">Gemini API Key</label>
-                <input type="password" id="api-key" class="search-input" placeholder="AIzaSy..."
-                    style="padding: 0.75rem; font-size: 1rem; margin-bottom:0.5rem;">
-                <p style="font-size:0.85rem; color:var(--text-muted);">Stored securely in your browser's sessionStorage.
-                    Never sent to any server.</p>
-            </div>
-            <div style="display:flex; justify-content:flex-end; gap:1rem;">
-                <button id="btn-close-settings">Cancel</button>
-                <button id="btn-save-settings" class="primary">Save</button>
-            </div>
-        </div>
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" stroke="#3B82F6" stroke-width="2"/>
+        <path d="M8 14h4l2-4 2 8 2-4h2" stroke="#60A5FA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      AdaptLearn
     </div>
+    <div class="nav-r">
+      <div class="xp-badge" id="xp-badge">⚡ <span id="xp-val">0</span> XP</div>
+      <button class="btn-icon" id="btn-theme" aria-label="Toggle theme">🌓</button>
+      <button class="btn-icon" id="btn-settings" aria-label="Open settings">⚙️</button>
+      <button class="btn-icon hidden" id="btn-logout" aria-label="Sign out">🚪</button>
+    </div>
+  </header>
 
-    <main id="main-content" style="display:flex; flex:1;">
-        <!-- Screen 1: Landing -->
-        <section id="screen-landing" class="screen active">
-            <h1 class="hero-title">AdaptLearn</h1>
-            <p class="hero-tagline">Your AI tutor that adapts to you in real-time.</p>
-            <div class="auth-buttons">
-                <button id="btn-google-login" class="primary" style="display:flex; align-items:center; gap:8px;">
-                    <svg width="20" height="20" viewBox="0 0 48 48">
-                        <path fill="#EA4335"
-                            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                        <path fill="#4285F4"
-                            d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                        <path fill="#FBBC05"
-                            d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-                        <path fill="#34A853"
-                            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-                    </svg>
-                    Sign in with Google
-                </button>
-                <button id="btn-guest-login">Continue as Guest</button>
+  <!-- Settings modal -->
+  <div id="modal-settings" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-box">
+      <h2 id="modal-title" style="margin-bottom:1rem;">⚙️ Settings</h2>
+      <label style="display:block;margin-bottom:.4rem;font-size:.9rem;">Gemini API Key</label>
+      <input type="password" id="api-key-input" class="big-input" placeholder="AIzaSy..." style="margin-bottom:.5rem;">
+      <p style="font-size:.8rem;color:var(--muted2);margin-bottom:1.2rem;">Stored in sessionStorage only. Never sent anywhere except Google's API.</p>
+      <div style="display:flex;gap:.7rem;justify-content:flex-end;">
+        <button id="btn-close-settings">Cancel</button>
+        <button id="btn-save-settings" class="btn-primary">Save Key</button>
+      </div>
+    </div>
+  </div>
+
+  <main id="main-content" style="display:flex;flex:1;">
+
+    <!-- ══════════════ SCREEN 1: LANDING ══════════════ -->
+    <section id="screen-landing" class="screen active">
+      <div class="hero-glow"><div class="hero-icon">🎓</div></div>
+      <h1 class="hero-title">Learn Anything with<br><span>AI that adapts to you</span></h1>
+      <p class="hero-sub">Type any topic. Get a full visual theory overview, real examples, and a scored 5-question test — all personalized to your level.</p>
+      <div class="auth-row">
+        <button id="btn-google-login" class="btn-primary" style="display:flex;align-items:center;gap:.5rem;">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Sign in with Google
+        </button>
+        <button id="btn-guest">Continue as Guest</button>
+      </div>
+    </section>
+
+    <!-- ══════════════ SCREEN 2: TOPIC INPUT ══════════════ -->
+    <section id="screen-topic" class="screen">
+      <h2 style="font-size:1.8rem;font-weight:700;margin-bottom:.4rem;">What do you want to learn? 🚀</h2>
+      <p class="muted" style="margin-bottom:2rem;">Enter any topic and we'll build a complete visual lesson + scored quiz for you.</p>
+      <div class="topic-wrap">
+        <input type="text" id="topic-input" class="big-input" maxlength="200"
+          placeholder="e.g., Photosynthesis, Machine Learning, French Revolution..."
+          aria-label="Enter topic to learn">
+        <div class="chips">
+          <span class="chip">Machine Learning</span>
+          <span class="chip">Black Holes</span>
+          <span class="chip">DNA & Genetics</span>
+          <span class="chip">World War II</span>
+          <span class="chip">Blockchain</span>
+          <span class="chip">Photosynthesis</span>
+          <span class="chip">Climate Change</span>
+          <span class="chip">Quantum Physics</span>
+        </div>
+        <button id="btn-go" class="btn-primary" style="width:100%;font-size:1.05rem;padding:.85rem;">
+          🎯 Start Learning
+        </button>
+      </div>
+
+      <!-- History -->
+      <div id="history-wrap" style="margin-top:2.5rem;width:100%;max-width:620px;display:none;">
+        <p class="section-title">📚 Previously Studied</p>
+        <div id="history-list"></div>
+      </div>
+    </section>
+
+    <!-- ══════════════ SCREEN 3: LEVEL PROBE ══════════════ -->
+    <section id="screen-probe" class="screen">
+      <div style="width:100%;max-width:680px;">
+        <div class="breadcrumb">🏠 Home › <span id="probe-topic-name"></span></div>
+        <h2 id="probe-heading" style="font-size:1.4rem;font-weight:600;margin-bottom:.3rem;">Quick Knowledge Check</h2>
+        <p class="muted" style="margin-bottom:.8rem;">3 quick questions so we can personalize your lesson</p>
+        <div class="prog-wrap">
+          <div id="probe-prog" class="prog-fill" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%"></div>
+        </div>
+
+        <!-- Loading -->
+        <div id="probe-loading" class="card hidden">
+          <div class="skeleton sk-title"></div>
+          <div class="skeleton sk-h"></div>
+          <div class="skeleton sk-h" style="width:80%"></div>
+          <div class="skeleton sk-h" style="width:90%;margin-top:.5rem"></div>
+          <div class="skeleton sk-h" style="width:75%"></div>
+        </div>
+
+        <!-- Question -->
+        <div id="probe-card" class="card hidden">
+          <p id="probe-q" style="font-size:1.05rem;font-weight:500;margin-bottom:1.2rem;"></p>
+          <div id="probe-opts"></div>
+          <button id="btn-probe-next" class="btn-primary" style="width:100%;margin-top:1rem;" disabled>Next →</button>
+        </div>
+
+        <!-- Result -->
+        <div id="probe-result" class="card hidden" style="text-align:center;">
+          <div style="font-size:3.5rem;margin-bottom:.8rem;" id="probe-emoji">🎯</div>
+          <h3 style="margin-bottom:.4rem;">Your Level: <span id="probe-level" style="color:var(--blue2);text-transform:capitalize;"></span></h3>
+          <p class="muted" style="margin-bottom:1.5rem;" id="probe-msg"></p>
+          <button id="btn-start-overview" class="btn-primary" style="padding:.85rem 2rem;">📖 View My Lesson →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ SCREEN 4: OVERVIEW (THEORY + VISUAL + EXAMPLES) ══════════════ -->
+    <section id="screen-overview" class="screen">
+      <div style="width:100%;">
+        <div class="breadcrumb">🏠 Home › <span id="ov-topic-crumb"></span> › <span>Lesson</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.7rem;margin-bottom:1.2rem;">
+          <div>
+            <h2 id="ov-title" style="font-size:1.5rem;font-weight:700;"></h2>
+            <p class="muted" style="font-size:.88rem;" id="ov-level-tag"></p>
+          </div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            <button id="btn-tts" class="btn-sm" aria-label="Read lesson aloud">🔊 Read Aloud</button>
+            <select id="lang-select" aria-label="Translate lesson"
+              style="padding:.4rem .8rem;border-radius:8px;background:var(--card);color:var(--text);border:1px solid var(--border);font-family:'Sora',sans-serif;font-size:.85rem;">
+              <option value="">🌐 Translate...</option>
+              <option value="Hindi">🇮🇳 Hindi</option>
+              <option value="Spanish">🇪🇸 Spanish</option>
+              <option value="French">🇫🇷 French</option>
+              <option value="Japanese">🇯🇵 Japanese</option>
+              <option value="German">🇩🇪 German</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="overview-tabs" role="tablist">
+          <button class="tab-btn active" role="tab" aria-selected="true" data-tab="theory" id="tab-theory">📖 Theory</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="visual" id="tab-visual">📊 Diagram</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-tab="examples" id="tab-examples">💡 Examples</button>
+        </div>
+
+        <!-- Tab: Theory -->
+        <div id="tab-theory-panel" role="tabpanel" aria-labelledby="tab-theory">
+          <div class="card card-wide">
+            <!-- Loading skeleton -->
+            <div id="theory-loading">
+              <div class="skeleton sk-title"></div>
+              <div class="skeleton sk-h"></div>
+              <div class="skeleton sk-h" style="width:92%"></div>
+              <div class="skeleton sk-h" style="width:85%"></div>
+              <div class="skeleton sk-h" style="margin-top:.8rem"></div>
+              <div class="skeleton sk-h" style="width:78%"></div>
             </div>
-        </section>
+            <div id="theory-content" class="lesson-body hidden"></div>
 
-        <!-- Screen 2: Topic Input -->
-        <section id="screen-topic" class="screen">
-            <h2 style="font-size: 2rem; margin-bottom: 1rem;">What do you want to learn today?</h2>
-            <div class="search-container">
-                <input type="text" id="topic-input" class="search-input"
-                    placeholder="e.g., Quantum Physics, Machine Learning..." aria-label="Topic to learn">
-                <div class="chips" id="topic-suggestions">
-                    <span class="chip">Machine Learning</span>
-                    <span class="chip">Blockchain</span>
-                    <span class="chip">Ancient Rome</span>
-                    <span class="chip">Photosynthesis</span>
-                </div>
-                <button id="btn-start-topic" class="primary" style="width:100%; font-size:1.2rem;">Start
-                    Learning</button>
+            <!-- Adaptive actions -->
+            <div id="theory-actions" class="hidden" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--border);">
+              <button id="btn-simpler" class="btn-sm">📉 Simpler</button>
+              <button id="btn-deeper" class="btn-sm">📈 Deeper</button>
+              <button id="btn-example-btn" class="btn-sm">💡 More Examples</button>
             </div>
-            <div id="history-section" style="margin-top: 4rem; width: 100%; max-width: 600px; display:none;">
-                <h3 style="margin-bottom: 1rem;">Previously Studied</h3>
-                <div class="chips" id="history-chips"></div>
+          </div>
+        </div>
+
+        <!-- Tab: Visual/Diagram -->
+        <div id="tab-visual-panel" role="tabpanel" aria-labelledby="tab-visual" class="hidden">
+          <div class="card card-wide">
+            <div id="visual-loading">
+              <div class="skeleton sk-title"></div>
+              <div class="skeleton sk-block"></div>
+              <div class="skeleton sk-block"></div>
             </div>
-        </section>
-
-        <!-- Screen 3: Knowledge Probe -->
-        <section id="screen-probe" class="screen">
-            <h2 id="probe-header" style="margin-bottom: 0.5rem;">Let's see what you already know</h2>
-            <div class="progress-bar-container">
-                <div role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
-                    aria-label="Assessment progress" class="progress-bar-fill" id="probe-progress"></div>
+            <div id="visual-content" class="hidden">
+              <p style="font-size:.85rem;color:var(--muted2);margin-bottom:1rem;" id="visual-caption"></p>
+              <div class="diagram-wrap" id="diagram-area"></div>
+              <div id="visual-text" class="lesson-body" style="margin-top:1rem;"></div>
             </div>
+          </div>
+        </div>
 
-            <div id="probe-loading" class="card hidden">
-                <div class="skeleton skeleton-title"></div>
-                <div class="skeleton skeleton-text"></div>
-                <div class="skeleton skeleton-text"></div>
-                <div class="skeleton skeleton-text"></div>
+        <!-- Tab: Examples -->
+        <div id="tab-examples-panel" role="tabpanel" aria-labelledby="tab-examples" class="hidden">
+          <div class="card card-wide">
+            <div id="examples-loading">
+              <div class="skeleton sk-title"></div>
+              <div class="skeleton sk-h"></div>
+              <div class="skeleton sk-h" style="width:80%"></div>
+              <div class="skeleton sk-block" style="margin-top:1rem;"></div>
             </div>
-
-            <div id="probe-content" class="card">
-                <h3 id="probe-q-text" style="margin-bottom:1.5rem;">Question...</h3>
-                <div id="probe-options"></div>
-                <button id="btn-probe-next" class="primary" style="margin-top: 1.5rem; width:100%;"
-                    disabled>Next</button>
+            <div id="examples-content" class="hidden">
+              <p style="margin-bottom:1rem;color:var(--muted2);font-size:.9rem;">Real-world applications and scenarios for <strong id="ex-topic-name" style="color:var(--text);"></strong></p>
+              <div class="example-grid" id="examples-grid"></div>
+              <div id="analogy-box" style="margin-top:1.5rem;background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:1.2rem;display:none;">
+                <p style="font-size:.85rem;font-weight:600;color:var(--amber);margin-bottom:.4rem;">🔄 Analogy</p>
+                <p id="analogy-text" style="font-size:.95rem;line-height:1.7;"></p>
+              </div>
             </div>
+          </div>
+        </div>
 
-            <div id="probe-result" class="card hidden" style="text-align: center;">
-                <h3 style="margin-bottom:1rem;">Assessment Complete</h3>
-                <div style="font-size:4rem; margin-bottom:1rem;" id="level-emoji">🎯</div>
-                <p style="font-size:1.2rem; margin-bottom:0.5rem;">Detected Level: <strong id="detected-level"
-                        style="color:var(--primary-blue); text-transform:capitalize;">Beginner</strong></p>
-                <p style="color:var(--text-muted); margin-bottom: 2rem;">We'll tailor your learning path accordingly.
-                </p>
-                <button id="btn-create-path" class="primary">Generate Learning Path</button>
+        <!-- CTA to quiz -->
+        <div style="display:flex;justify-content:center;margin-top:1.5rem;">
+          <button id="btn-take-test" class="btn-green" style="padding:.9rem 2.5rem;font-size:1.05rem;" disabled>
+            ✅ I'm ready — Take the 5-Question Test
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ SCREEN 5: FINAL 5-Q QUIZ ══════════════ -->
+    <section id="screen-quiz" class="screen">
+      <div style="width:100%;max-width:720px;">
+        <div class="breadcrumb">🏠 Home › <span id="quiz-topic-crumb"></span> › <span>Final Test</span></div>
+
+        <!-- Quiz loading -->
+        <div id="quiz-loading" class="card">
+          <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:1rem;">
+            <div class="spinner"></div>
+            <span>Generating your personalized 5-question test...</span>
+          </div>
+          <div class="skeleton sk-h"></div>
+          <div class="skeleton sk-h" style="width:85%;margin-top:.4rem;"></div>
+        </div>
+
+        <!-- Quiz questions -->
+        <div id="quiz-questions" class="hidden">
+          <div class="quiz-header">
+            <h2 style="font-size:1.3rem;font-weight:700;">📝 Final Knowledge Test</h2>
+            <span class="quiz-counter" id="quiz-counter">Question <span id="q-current">1</span> of 5</span>
+          </div>
+          <div class="prog-wrap" style="margin-bottom:1.5rem;">
+            <div id="quiz-prog" class="prog-fill" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%"></div>
+          </div>
+
+          <!-- Single question view -->
+          <div id="current-q-wrap"></div>
+          <div style="display:flex;gap:.7rem;margin-top:1.2rem;">
+            <button id="btn-q-submit" class="btn-primary" style="flex:1;">Check Answer</button>
+          </div>
+          <div id="q-feedback" class="hidden" style="margin-top:1rem;padding:1rem;border-radius:10px;font-size:.95rem;line-height:1.6;"></div>
+          <button id="btn-q-next" class="btn-primary hidden" style="width:100%;margin-top:.8rem;">Next Question →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ SCREEN 6: SCORE RESULTS ══════════════ -->
+    <section id="screen-score" class="screen">
+      <div style="width:100%;max-width:600px;text-align:center;">
+        <div class="breadcrumb" style="justify-content:center;">🏠 Home › <span id="score-topic-crumb"></span> › <span>Results</span></div>
+        <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:.3rem;">Test Complete! 🎉</h2>
+        <p class="muted" style="margin-bottom:1.5rem;" id="score-sub"></p>
+
+        <div class="score-ring-wrap">
+          <div class="score-ring">
+            <svg viewBox="0 0 160 160" width="160" height="160">
+              <circle class="track" cx="80" cy="80" r="68"/>
+              <circle class="fill" id="score-circle" cx="80" cy="80" r="68"
+                stroke-dasharray="427" stroke-dashoffset="427"/>
+            </svg>
+            <div class="score-num">
+              <strong id="score-pct">0%</strong>
+              <span id="score-fraction">0/5</span>
             </div>
-        </section>
+          </div>
+          <div id="score-grade" style="margin-top:.8rem;font-size:1.5rem;"></div>
+        </div>
 
-        <!-- Screen 4: Learning Path Overview -->
-        <section id="screen-path" class="screen">
-            <h2 style="margin-bottom: 2rem;">Your Custom Learning Path</h2>
-            <div class="roadmap" id="roadmap-container"></div>
-            <button id="btn-begin-lesson" class="primary" style="margin-top: 2rem;">Begin Lesson 1</button>
-        </section>
+        <div class="score-breakdown card" style="text-align:left;">
+          <p style="font-weight:600;margin-bottom:.8rem;">Question Breakdown</p>
+          <div id="score-breakdown-list"></div>
+        </div>
 
-        <!-- Screen 5: Lesson View -->
-        <section id="screen-lesson" class="screen">
-            <div class="breadcrumb" id="lesson-breadcrumb">Step 1 of 5: Concept Name</div>
-            <div class="lesson-layout">
-                <div class="lesson-content card">
-                    <h2 id="lesson-title" style="margin-bottom: 1.5rem;">Concept</h2>
-                    <div id="lesson-text" class="typewriter-text">
-                        <div class="skeleton skeleton-title"></div>
-                        <div class="skeleton skeleton-text"></div>
-                        <div class="skeleton skeleton-text"></div>
-                        <div class="skeleton skeleton-text"></div>
-                    </div>
-                </div>
-                <div class="lesson-sidebar">
-                    <button id="btn-simpler" class="action-btn">📉 Simpler</button>
-                    <button id="btn-deeper" class="action-btn">📈 Deeper</button>
-                    <button id="btn-example" class="action-btn">💡 Example</button>
-                    <button id="btn-tts" class="action-btn">🔊 Read Aloud</button>
-                    <select id="lang-select" aria-label="Translate lesson to language"
-                        style="padding:0.75rem; border-radius:8px; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); margin-top:0.5rem; font-size:1rem;">
-                        <option value="">🌐 Translate to...</option>
-                        <option value="Hindi">🇮🇳 Hindi</option>
-                        <option value="Spanish">🇪🇸 Spanish</option>
-                        <option value="French">🇫🇷 French</option>
-                        <option value="Japanese">🇯🇵 Japanese</option>
-                    </select>
-                    <hr style="border-color:var(--border-color); margin: 0.5rem 0;">
-                    <button id="btn-to-quiz" class="primary">✅ I understand, Quiz me</button>
-                </div>
-            </div>
-        </section>
+        <div id="xp-earned-box" style="margin:1rem 0;padding:1rem;background:var(--card2);border:1px solid var(--border2);border-radius:12px;">
+          <p style="font-size:1.1rem;font-weight:600;">⚡ <span id="xp-earned-val">0</span> XP Earned this session!</p>
+        </div>
 
-        <!-- Screen 6: Quiz -->
-        <section id="screen-quiz" class="screen">
-            <h2 style="margin-bottom: 2rem;">Concept Check</h2>
-            <div id="quiz-loading" class="card">
-                <div class="skeleton skeleton-title"></div>
-                <div class="skeleton skeleton-text"></div>
-                <div class="skeleton skeleton-text"></div>
-            </div>
+        <div style="display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;margin-top:1rem;">
+          <button id="btn-review-quiz" class="btn-sm">🔍 Review Answers</button>
+          <button id="btn-retry-quiz" class="btn-sm">🔄 Retry Test</button>
+          <button id="btn-new-topic" class="btn-primary">🚀 Learn New Topic</button>
+        </div>
+      </div>
+    </section>
 
-            <div id="quiz-content" class="card hidden" style="width: 100%; max-width: 800px;">
-                <div style="margin-bottom: 2rem;">
-                    <h3 id="quiz-mcq-q" style="margin-bottom: 1rem;">MCQ Question</h3>
-                    <fieldset style="border:none; padding:0;">
-                        <legend style="font-size:1.1rem; font-weight:500; margin-bottom:1rem;" class="sr-only">Choose
-                            the correct answer:</legend>
-                        <div id="quiz-mcq-options"></div>
-                    </fieldset>
-                </div>
-                <div style="margin-bottom: 2rem;">
-                    <h3 id="quiz-open-q" style="margin-bottom: 1rem;">Open Question</h3>
-                    <textarea id="quiz-open-ans" class="open-answer"
-                        placeholder="Type your explanation here..."></textarea>
-                </div>
-                <button id="btn-submit-quiz" class="primary" style="width: 100%;">Submit Answers</button>
-            </div>
+    <!-- ══════════════ SCREEN 7: REVIEW ALL ══════════════ -->
+    <section id="screen-review" class="screen">
+      <div style="width:100%;max-width:720px;">
+        <div class="breadcrumb">🏠 Home › <span id="rev-topic-crumb"></span> › <span>Review</span></div>
+        <h2 style="font-size:1.3rem;font-weight:700;margin-bottom:1.5rem;">📋 Answer Review</h2>
+        <div id="review-list"></div>
+        <button id="btn-back-score" class="btn-primary" style="width:100%;margin-top:1rem;">← Back to Score</button>
+      </div>
+    </section>
 
-            <div id="quiz-feedback" class="feedback-card" style="width: 100%; max-width: 800px;">
-                <h3 id="feedback-title" style="margin-bottom: 0.5rem;">Result</h3>
-                <p id="feedback-text" style="line-height: 1.5;"></p>
-                <div id="micro-lesson-container" class="hidden"
-                    style="margin-top: 1rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px;">
-                    <strong>Micro-Lesson:</strong> <span id="micro-lesson-text"></span>
-                </div>
-                <button id="btn-quiz-next" class="primary" style="margin-top: 1.5rem; width: 100%;">Next</button>
-            </div>
-        </section>
+    <!-- ══════════════ SCREEN 8: DASHBOARD ══════════════ -->
+    <section id="screen-dash" class="screen">
+      <div style="width:100%;">
+        <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:1.5rem;">📊 Learning Dashboard</h2>
+        <div class="dash-grid">
+          <div class="stat-tile">
+            <div class="val" id="dash-xp">0</div>
+            <div class="lbl">Total XP</div>
+          </div>
+          <div class="stat-tile">
+            <div class="val" id="dash-topics-count">0</div>
+            <div class="lbl">Topics Studied</div>
+          </div>
+          <div class="stat-tile">
+            <div class="val" id="dash-avg">—</div>
+            <div class="lbl">Avg Score</div>
+          </div>
+          <div class="stat-tile">
+            <div class="val" id="dash-streak">0🔥</div>
+            <div class="lbl">Day Streak</div>
+          </div>
+        </div>
 
-        <!-- Screen 7: Dashboard -->
-        <section id="screen-dashboard" class="screen">
-            <h2 style="margin-bottom: 2rem;">Learning Dashboard</h2>
-            <div class="dashboard-grid">
-                <div class="card stat-card">
-                    <h3>Total XP</h3>
-                    <div class="stat-value" id="dash-xp">0</div>
-                    <p style="color:var(--text-muted);" id="dash-streak">0 day streak 🔥</p>
-                </div>
-                <div class="card stat-card">
-                    <h3>Concepts Mastered</h3>
-                    <div class="stat-value" id="dash-concepts">0</div>
-                </div>
-                <div class="card stat-card" style="grid-column: 1 / -1;">
-                    <h3>XP Last 7 Days</h3>
-                    <div class="bar-chart" id="dash-chart"></div>
-                </div>
-                <div class="card stat-card" style="grid-column: 1 / -1;">
-                    <h3 style="text-align: left; margin-bottom: 1rem;">Your Topics</h3>
-                    <div id="dash-topics-list" style="text-align: left;">
-                        <p style="color:var(--text-muted);">No topics studied yet.</p>
-                    </div>
-                </div>
-            </div>
-            <button id="btn-dash-home" class="primary" style="margin-top: 2rem;">Learn Something New</button>
-        </section>
-    </main>
+        <div class="card" style="max-width:100%;">
+          <p style="font-weight:600;margin-bottom:.8rem;">7-Day XP Activity</p>
+          <div class="mini-bar-wrap" id="dash-bars"></div>
+        </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
-        import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-analytics.js";
-        import { getPerformance, trace } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-performance.js";
+        <div class="card" style="max-width:100%;margin-top:0;">
+          <p style="font-weight:600;margin-bottom:.8rem;">Your Topics</p>
+          <div id="dash-topic-list"><p class="muted" style="font-size:.9rem;">No topics yet. Start learning!</p></div>
+        </div>
 
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+        <button id="btn-dash-learn" class="btn-primary" style="width:100%;margin-top:1rem;">🚀 Learn Something New</button>
+      </div>
+    </section>
 
-        let app, auth, db, analytics, perf;
-        try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            analytics = getAnalytics(app);
-            perf = getPerformance(app);
-        } catch (e) { console.warn("Firebase not configured natively. Using guest mode."); }
+  </main>
 
-        const state = {
-            user: null, isGuest: true,
-            topic: '', level: 'beginner',
-            path: [], currentStep: 1, totalSteps: 5,
-            probeData: null, probeStep: 0, probeScore: 0,
-            lessonText: '', currentQuiz: null,
-            attemptNum: 1, sessionXP: 0
-        };
+  <script type="module">
+    import { initializeApp }         from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut }
+                                      from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, getDocs }
+                                      from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+    import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-analytics.js";
+    import { getPerformance, trace }  from "https://www.gstatic.com/firebasejs/10.10.0/firebase-performance.js";
 
-        const rateLimiter = {
-            calls: [],
-            maxCalls: 10,
-            windowMs: 60000,
-            check() {
-                const now = Date.now();
-                this.calls = this.calls.filter(t => now - t < this.windowMs);
-                if (this.calls.length >= this.maxCalls) return false;
-                this.calls.push(now);
-                return true;
-            }
-        };
+    /* ── Firebase config ── */
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    let app, auth, db, analytics, perf;
+    try {
+      app       = initializeApp(firebaseConfig);
+      auth      = getAuth(app);
+      db        = getFirestore(app);
+      analytics = getAnalytics(app);
+      perf      = getPerformance(app);
+    } catch(e) { console.warn("Firebase not configured — guest mode only."); }
 
-        window.calculateMasteryScore = (correctAnswers, totalQuestions) => totalQuestions === 0 ? 0 : Math.round((correctAnswers / totalQuestions) * 100);
-        window.determineLevel = (probeScore) => { if (probeScore >= 80) return 'advanced'; if (probeScore >= 50) return 'intermediate'; return 'beginner'; };
-        window.getNextReviewDate = (lastStudied, masteryScore) => { const d = new Date(lastStudied); d.setDate(d.getDate() + (masteryScore >= 80 ? 7 : (masteryScore >= 50 ? 3 : 1))); return d; };
-        window.sanitizeInput = (rawText) => { if (!rawText) return ''; const t = document.createElement('div'); t.textContent = rawText; return t.innerHTML; };
-        window.parseGeminiJSON = (responseText) => { try { return JSON.parse(responseText.replace(/```json/gi, '').replace(/```/g, '').trim()); } catch (e) { throw new Error("Invalid JSON response from Gemini"); } };
-        window.calculateXP = (correct, attemptNumber) => !correct ? 0 : (attemptNumber === 1 ? 50 : 25);
-        window.formatStreak = (days) => `${days} day streak 🔥`;
-        window.buildLessonPrompt = (topic, level, concept, step) => `You are a world-class adaptive tutor.\nTopic: "${topic}"\nLearner level: "${level}" (beginner | intermediate | advanced)\nCurrent concept: "${concept}" (Step ${step} of 5)\n\nWrite a clear, engaging lesson on this concept.\nRules:\n- Beginner: use simple language, everyday analogies, avoid jargon\n- Intermediate: use correct terminology, build on basics, include one analogy\n- Advanced: use technical depth, discuss edge cases, compare approaches\n\nStructure your response as:\n1. One-sentence concept summary (bold)\n2. Core explanation (3-4 paragraphs)\n3. Key takeaway (prefixed with "💡 Key insight:")\nDo NOT use markdown headers. Use plain paragraphs only.`;
+    /* ── Constants ── */
+    // Replace the deprecated model
+    const GEMINI_MODEL = 'gemini-2.5-flash';
+    const GEMINI_BASE   = 'https://generativelanguage.googleapis.com/v1beta/models';
+    const MAX_TOPIC_LEN = 200;
+    const TOTAL_Q       = 5;
 
-        const probePrompt = (topic) => `You are an expert educator assessing prior knowledge.\nTopic: "${topic}"\nGenerate exactly 3 multiple-choice questions to assess the user's current knowledge level.\nQuestions should range from basic to intermediate difficulty.\nRespond ONLY with valid JSON in this exact format:\n{"level": "beginner" | "intermediate" | "advanced", "confidence": 0-100, "questions": [{"id": 1, "question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": "A", "explanation": "..."}]}`;
-        const quizPrompt = (topic, level, concept) => `The learner just completed a lesson on "${concept}" within the topic "${topic}".\nTheir level: "${level}"\nGenerate a concept check with:\n1. One MCQ to test factual understanding\n2. One open-ended question to test deeper comprehension\nRespond ONLY with valid JSON:\n{"mcq": {"question": "...", "options": ["A. ...", "B. ...", "C. ...", "D. ..."], "correct": "A", "explanation": "..."}, "open": {"question": "...", "model_answer": "...", "keywords": ["...", "..."]}}`;
-        const evalPrompt = (openQuestion, modelAnswer, keywords, userAnswer) => `Question: "${openQuestion}"\nModel answer: "${modelAnswer}"\nKeywords that should appear: ${keywords.join(', ')}\nLearner's answer: "${userAnswer}"\nEvaluate the learner's answer. Be generous but fair.\nRespond ONLY with valid JSON:\n{"passed": true | false, "score": 0-100, "feedback": "2-sentence personalized feedback"}`;
-        const microLessonPrompt = (topic, question, wrongAnswer, correctAnswer) => `A learner got a quiz question wrong. Explain the concept again clearly.\nTopic: "${topic}"\nQuestion they got wrong: "${question}"\nTheir wrong answer: "${wrongAnswer}"\nCorrect answer: "${correctAnswer}"\nWrite exactly 3 short sentences:\n1. Acknowledge the common confusion kindly\n2. Explain the correct concept simply\n3. Give one memorable tip to remember it\nDo not use markdown. Plain text only.`;
-        const simplerPrompt = (currentLesson) => `Rewrite the following lesson explanation for a complete beginner.\nUse simple words, a relatable everyday analogy, and very short sentences.\nOriginal: "${currentLesson}"`;
-        const deeperPrompt = (currentLesson) => `Expand on this lesson for an advanced learner.\nAdd technical depth, discuss limitations or edge cases, and compare to related concepts.\nOriginal: "${currentLesson}"`;
-        const examplePrompt = (currentLesson) => `Give one concrete, real-world example that illustrates this concept clearly.\nMake it vivid, specific, and memorable. 3-4 sentences.\nConcept: "${currentLesson}"`;
+    /* ── State ── */
+    const state = {
+      user: null, isGuest: true,
+      topic: '', level: 'beginner',
+      probeData: [], probeIdx: 0, probeCorrect: 0,
+      theoryText: '', visualData: null, examplesData: null,
+      quizQuestions: [], qIdx: 0, answers: [],
+      sessionXP: 0, totalXP: 0,
+    };
 
-        const $ = id => document.getElementById(id);
-        const announce = msg => { $('aria-announcer').textContent = msg; };
-        const showScreen = id => {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            $(id).classList.add('active');
-            announce(`Navigated to ${id.replace('screen-', '')} screen`);
-        };
+    /* ── Rate limiter ── */
+    const rl = { calls:[], max:12, win:60000,
+      ok() { const n=Date.now(); this.calls=this.calls.filter(t=>n-t<this.win); if(this.calls.length>=this.max)return false; this.calls.push(n); return true; }
+    };
 
-        // Replace the deprecated model
-        const GEMINI_MODEL = 'gemini-2.5-flash';
+    /* ── Utility functions (exported to window for tests) ── */
+    const sanitize = (s) => { if(!s) return ''; const d=document.createElement('div'); d.textContent=s; return d.innerHTML; };
+    const parseJSON = (s) => { try{ return JSON.parse(s.replace(/```json/gi,'').replace(/```/g,'').trim()); }catch(e){ throw new Error("Invalid JSON response from Gemini"); } };
+    const calcMastery = (c,t) => t===0?0:Math.round((c/t)*100);
+    const calcLevel = (sc) => sc>=80?'advanced':sc>=50?'intermediate':'beginner';
+    const calcXP = (correct, attempt) => !correct?0:(attempt===1?50:25);
+    const calcQuizXP = (score, total) => Math.round((score/total)*100);
+    const nextReview = (last, m) => { const d=new Date(last); d.setDate(d.getDate()+(m>=80?7:m>=50?3:1)); return d; };
+    const streak = (days) => `${days} day streak 🔥`;
+    const buildLessonPrompt = (topic, level, concept, step) =>
+      `You are a world-class adaptive tutor.\nTopic: "${topic}"\nLearner level: "${level}"\nCurrent concept: "${concept}" (Step ${step} of 5)\nWrite a clear engaging lesson.\nRules:\n- Beginner: simple language, everyday analogies\n- Intermediate: correct terms, one analogy\n- Advanced: technical depth, edge cases\nFormat:\n1. Bold one-sentence summary\n2. Core explanation (3-4 paragraphs)\n3. Key takeaway prefixed "💡 Key insight:"\nNo markdown headers. Plain paragraphs only.`;
 
+    window.calculateMasteryScore = calcMastery;
+    window.determineLevel        = calcLevel;
+    window.getNextReviewDate     = nextReview;
+    window.sanitizeInput         = sanitize;
+    window.parseGeminiJSON       = parseJSON;
+    window.calculateXP           = calcXP;
+    window.formatStreak          = streak;
+    window.buildLessonPrompt     = buildLessonPrompt;
+    window.calculateQuizXP       = calcQuizXP;
 
-        async function fetchGemini(promptStr, onStream = null) {
-            if (!rateLimiter.check()) throw new Error("Rate limit exceeded. Please wait a minute before requesting more.");
+    /* ── DOM helpers ── */
+    const $ = id => document.getElementById(id);
+    const announce = m => { $('aria-live').textContent=''; requestAnimationFrame(()=>{ $('aria-live').textContent=m; }); };
+    const showScreen = id => {
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      $(id).classList.add('active');
+      announce(`Navigated to ${id.replace('screen-','')}`);
+    };
 
-            const key = sessionStorage.getItem('gemini_api_key');
-            if (!key || !key.startsWith('AIza')) {
-                $('settings-modal').classList.add('active');
-                throw new Error('Please add your Gemini API key in Settings ⚙️');
-            }
+    /* ── Gemini API ── */
+    function getKey() {
+      const k = sessionStorage.getItem('gemini_api_key');
+      if(!k||!k.startsWith('AIza')) { $('modal-settings').classList.add('open'); throw new Error('Add your Gemini API key in ⚙️ Settings first.'); }
+      return k;
+    }
 
-            let perfTrace;
-            if (perf) { perfTrace = trace(perf, 'gemini_api_call'); perfTrace.start(); }
-
-            try {
-                if (!onStream) {
-                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{ role: 'user', parts: [{ text: promptStr }] }],
-                            generationConfig: { temperature: 0.4, maxOutputTokens: 1024 }
-                        })
-                    });
-                    if (!res.ok) {
-                        const err = await res.json().catch(() => ({}));
-                        throw new Error(err?.error?.message || `API Error ${res.status}`);
-                    }
-                    const data = await res.json();
-                    return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                }
-
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${key}`;
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ role: 'user', parts: [{ text: promptStr }] }],
-                        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
-                    })
-                });
-
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({}));
-                    throw new Error(err?.error?.message || `API Error ${res.status}`);
-                }
-
-                const reader = res.body.getReader();
-                const decoder = new TextDecoder('utf-8');
-                let full = '';
-                let buffer = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop(); // keep incomplete line in buffer
-
-                    for (const line of lines) {
-                        if (!line.startsWith('data: ')) continue;
-                        const raw = line.slice(6).trim();
-                        if (!raw || raw === '[DONE]') continue;
-                        try {
-                            const parsed = JSON.parse(raw);
-                            const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                            if (text) { full += text; onStream(text); }
-                        } catch (_) { }
-                    }
-                }
-                return full;
-            } finally {
-                if (perfTrace) perfTrace.stop();
-            }
-        }
-
-        async function safeGeminiJSON(promptStr) {
-            const raw = await fetchGemini(promptStr, null);
-            return window.parseGeminiJSON(raw);
-        }
-
-        $('btn-theme').onclick = () => {
-            const doc = document.documentElement;
-            doc.setAttribute('data-theme', doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-        };
-
-        $('btn-settings').onclick = () => { $('api-key').value = sessionStorage.getItem('gemini_api_key') || ''; $('settings-modal').classList.add('active'); };
-        $('btn-close-settings').onclick = () => $('settings-modal').classList.remove('active');
-        $('btn-save-settings').onclick = () => {
-            const val = $('api-key').value.trim();
-            if (val) sessionStorage.setItem('gemini_api_key', val);
-            $('settings-modal').classList.remove('active');
-        };
-
-        $('btn-guest-login').onclick = () => {
-            state.isGuest = true;
-            $('xp-display').classList.remove('hidden');
-            showScreen('screen-topic');
-            loadDashboardData();
-        };
-
-        if (auth) {
-            $('btn-google-login').onclick = async () => {
-                try {
-                    const res = await signInWithPopup(auth, new GoogleAuthProvider());
-                    state.user = res.user;
-                    state.isGuest = false;
-                    $('xp-display').classList.remove('hidden');
-                    $('btn-logout').classList.remove('hidden');
-                    $('btn-google-login').classList.add('hidden');
-                    $('btn-guest-login').classList.add('hidden');
-                    showScreen('screen-topic');
-                    loadDashboardData();
-                } catch (e) { alert("Login failed: " + e.message); }
-            };
-            $('btn-logout').onclick = () => { signOut(auth); location.reload(); };
-        }
-
-        document.querySelectorAll('.chip').forEach(c => c.onclick = () => {
-            $('topic-input').value = c.textContent;
+    async function geminiJSON(prompt) {
+      if(!rl.ok()) throw new Error('Rate limit — wait a moment and try again.');
+      const key = getKey();
+      let pt; if(perf){ pt=trace(perf,'gemini_json'); pt.start(); }
+      try {
+        const res = await fetch(`${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${key}`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ contents:[{role:'user',parts:[{text:prompt}]}], generationConfig:{temperature:0.4,maxOutputTokens:2048} })
         });
-
-        $('btn-start-topic').onclick = async () => {
-            const raw = $('topic-input').value;
-            if (!raw || raw.trim().length < 2) {
-                alert('Please enter a topic (at least 2 characters).');
-                return;
-            }
-            if (raw.length > 200) {
-                alert('Topic must be under 200 characters.');
-                return;
-            }
-
-            state.topic = window.sanitizeInput(raw.trim());
-            state.currentStep = 1;
-            state.sessionXP = 0;
-
-            if (analytics) logEvent(analytics, 'learning_started', { topic: state.topic });
-
-            showScreen('screen-probe');
-            $('probe-header').textContent = `Let's see what you already know about ${state.topic}`;
-            $('probe-progress').setAttribute('aria-valuenow', 0);
-            $('probe-progress').style.width = '0%';
-            $('probe-content').classList.add('hidden');
-            $('probe-result').classList.add('hidden');
-            $('probe-loading').classList.remove('hidden');
-
-            try {
-                const data = await safeGeminiJSON(probePrompt(state.topic));
-                state.probeData = data.questions;
-                state.probeScore = 0;
-                state.probeStep = 0;
-                renderProbeQuestion();
-            } catch (e) {
-                alert(e.message);
-                showScreen('screen-topic');
-            }
-        };
-
-        function renderProbeQuestion() {
-            $('probe-loading').classList.add('hidden');
-            $('probe-content').classList.remove('hidden');
-            $('btn-probe-next').disabled = true;
-
-            const q = state.probeData[state.probeStep];
-            $('probe-q-text').textContent = `${state.probeStep + 1}. ${q.question}`;
-            const pct = ((state.probeStep) / 3) * 100;
-            $('probe-progress').style.width = `${pct}%`;
-            $('probe-progress').setAttribute('aria-valuenow', pct);
-
-            const opts = $('probe-options');
-            opts.innerHTML = '';
-            q.options.forEach(opt => {
-                const lbl = document.createElement('label');
-                lbl.className = 'radio-option';
-                lbl.innerHTML = `<input type="radio" name="probe-ans" value="${opt[0]}"> ${window.sanitizeInput(opt)}`;
-                lbl.onclick = () => $('btn-probe-next').disabled = false;
-                opts.appendChild(lbl);
-            });
+        if(!res.ok){ const e=await res.json().catch(()=>({})); const m=e?.error?.message||'';
+          throw new Error(m.includes('quota')||m.includes('RESOURCE_EXHAUSTED')
+            ? '⚠️ API quota reached. Wait 1 min or add a new key in ⚙️ Settings.' : m||`API Error ${res.status}`);
         }
+        const d = await res.json();
+        return parseJSON(d?.candidates?.[0]?.content?.parts?.[0]?.text||'{}');
+      } finally { if(pt) pt.stop(); }
+    }
 
-        $('btn-probe-next').onclick = () => {
-            const selected = document.querySelector('input[name="probe-ans"]:checked');
-            if (!selected) return;
-            const q = state.probeData[state.probeStep];
-            if (selected.value === q.correct) state.probeScore++;
-
-            state.probeStep++;
-            if (state.probeStep < 3) {
-                renderProbeQuestion();
-            } else {
-                $('probe-progress').style.width = `100%`;
-                $('probe-progress').setAttribute('aria-valuenow', 100);
-                $('probe-content').classList.add('hidden');
-                $('probe-result').classList.remove('hidden');
-
-                const scorePerc = window.calculateMasteryScore(state.probeScore, 3);
-                state.level = window.determineLevel(scorePerc);
-                $('detected-level').textContent = state.level;
-                $('level-emoji').textContent = state.level === 'advanced' ? '🎓' : (state.level === 'intermediate' ? '🚀' : '🌱');
-            }
-        };
-
-        $('btn-create-path').onclick = () => {
-            showScreen('screen-path');
-            const bases = ["Introduction to", "Core Principles of", "Advanced Concepts in", "Practical Applications of", "Mastery of"];
-            state.path = bases.map(b => `${b} ${state.topic}`);
-
-            let html = '';
-            state.path.forEach((p, i) => {
-                html += `
-                <div class="roadmap-node ${i === 0 ? 'active' : ''}" id="node-${i}">
-                    <div class="node-icon">${i + 1}</div>
-                    <div>
-                        <h3 style="font-size:1.1rem; margin-bottom:4px;">${p}</h3>
-                        <p style="font-size:0.85rem; color:var(--text-muted);">Est. 5 mins</p>
-                    </div>
-                </div>`;
-            });
-            $('roadmap-container').innerHTML = html;
-        };
-
-        $('btn-begin-lesson').onclick = () => loadLesson();
-
-        async function loadLesson() {
-            showScreen('screen-lesson');
-            const concept = state.path[state.currentStep - 1];
-            $('lesson-breadcrumb').textContent = `Step ${state.currentStep} of 5: ${concept}`;
-            $('lesson-title').textContent = concept;
-            $('lesson-text').innerHTML = '<div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div>';
-            $('btn-to-quiz').disabled = true;
-            $('lang-select').value = '';
-
-            if (analytics) logEvent(analytics, 'lesson_viewed', { topic: state.topic, level: state.level, step: state.currentStep });
-
-            state.lessonText = '';
-            try {
-                await fetchGemini(window.buildLessonPrompt(state.topic, state.level, concept, state.currentStep), (chunk) => {
-                    if (state.lessonText === '') $('lesson-text').innerHTML = '';
-                    state.lessonText += chunk;
-                    $('lesson-text').textContent = state.lessonText;
-                });
-                $('btn-to-quiz').disabled = false;
-            } catch (e) {
-                $('lesson-text').innerHTML = `<p style="color:var(--error-text)">${window.sanitizeInput(e.message)}</p>`;
-            }
+    async function geminiStream(prompt, onChunk) {
+      if(!rl.ok()) throw new Error('Rate limit — wait a moment.');
+      const key = getKey();
+      let pt; if(perf){ pt=trace(perf,'gemini_stream'); pt.start(); }
+      try {
+        const res = await fetch(`${GEMINI_BASE}/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${key}`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ contents:[{role:'user',parts:[{text:prompt}]}], generationConfig:{temperature:0.7,maxOutputTokens:3000} })
+        });
+        if(!res.ok){ const e=await res.json().catch(()=>({})); const m=e?.error?.message||'';
+          throw new Error(m.includes('quota') ? '⚠️ API quota reached. Wait 1 min or add new key in ⚙️ Settings.' : m||`API Error ${res.status}`);
         }
-
-        $('btn-simpler').onclick = () => { if (state.lessonText) applyAdaptive(simplerPrompt(state.lessonText), 'simpler'); };
-        $('btn-deeper').onclick = () => { if (state.lessonText) applyAdaptive(deeperPrompt(state.lessonText), 'deeper'); };
-        $('btn-example').onclick = () => { if (state.lessonText) applyAdaptive(examplePrompt(state.lessonText), 'example'); };
-
-        async function applyAdaptive(prompt, actionName) {
-            $('lesson-text').innerHTML = '<div class="skeleton skeleton-text"></div>';
-            if (analytics) logEvent(analytics, 'adaptive_action', { action: actionName });
-            state.lessonText = '';
-            try {
-                await fetchGemini(prompt, (chunk) => {
-                    if (state.lessonText === '') $('lesson-text').innerHTML = '';
-                    state.lessonText += chunk;
-                    $('lesson-text').textContent = state.lessonText;
-                });
-            } catch (e) {
-                $('lesson-text').innerHTML = `<p style="color:var(--error-text)">${window.sanitizeInput(e.message)}</p>`;
-            }
+        const reader=res.body.getReader(); const dec=new TextDecoder(); let buf=''; let full='';
+        while(true){
+          const {done,value}=await reader.read(); if(done) break;
+          buf+=dec.decode(value,{stream:true});
+          const lines=buf.split('\n'); buf=lines.pop();
+          for(const line of lines){
+            if(!line.startsWith('data: ')) continue;
+            const raw=line.slice(6).trim();
+            if(!raw||raw==='[DONE]') continue;
+            try{ const p=JSON.parse(raw); const t=p?.candidates?.[0]?.content?.parts?.[0]?.text||''; if(t){full+=t;onChunk(t);} }catch(_){}
+          }
         }
+        return full;
+      } finally { if(pt) pt.stop(); }
+    }
 
-        $('btn-tts').onclick = () => {
-            if (!window.speechSynthesis) return alert("TTS not supported in your browser.");
-            window.speechSynthesis.cancel();
-            if (state.lessonText) {
-                const u = new SpeechSynthesisUtterance(state.lessonText);
-                window.speechSynthesis.speak(u);
-            }
-        };
+    /* ── Render theory text with basic markdown ── */
+    function renderTheory(text) {
+      let html = sanitize(text);
+      // Bold text
+      html = html.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+      // Key insight line
+      html = html.replace(/(💡 Key insight:.*?)(\n|$)/g,'<div class="insight">$1</div>');
+      // Paragraphs
+      const paras = html.split('\n\n').filter(p=>p.trim());
+      return paras.map(p=>`<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
+    }
 
-        $('lang-select').onchange = async (e) => {
-            const lang = e.target.value;
-            if (!lang || !state.lessonText) return;
-            const el = $('lesson-text');
-            el.textContent = 'Translating...';
-            try {
-                const translated = await fetchGemini(`Translate this lesson to ${lang}. Keep the 💡 Key insight: prefix. Return ONLY the translated text.\n\n${state.lessonText}`, null);
-                state.lessonText = translated;
-                el.textContent = translated;
-                if (analytics) logEvent(analytics, 'lesson_translated', { language: lang });
-            } catch (err) {
-                el.textContent = state.lessonText;
-                alert(err.message);
-            }
-        };
+    /* ── Generate SVG diagram based on topic keywords ── */
+    function generateDiagram(topic, visualData) {
+      const nodes = visualData?.nodes || [];
+      const title = visualData?.diagram_title || `How ${topic} Works`;
+      const caption = visualData?.caption || `Visual overview of ${topic}`;
 
-        $('btn-to-quiz').onclick = async () => {
-            window.speechSynthesis?.cancel();
-            showScreen('screen-quiz');
-            $('quiz-content').classList.add('hidden');
-            $('quiz-feedback').classList.add('hidden');
-            $('quiz-loading').classList.remove('hidden');
-            $('quiz-open-ans').value = '';
-            state.attemptNum = 1;
+      if(!nodes.length) {
+        $('diagram-area').innerHTML = `<p class="muted" style="text-align:center;padding:2rem;">Diagram not available for this topic.</p>`;
+        return caption;
+      }
 
-            try {
-                state.currentQuiz = await safeGeminiJSON(quizPrompt(state.topic, state.level, state.path[state.currentStep - 1]));
-                $('quiz-loading').classList.add('hidden');
-                $('quiz-content').classList.remove('hidden');
+      const colors = ['#3B82F6','#10B981','#F59E0B','#8B5CF6','#EF4444','#06B6D4'];
+      const W=700, H=320;
+      const n=nodes.length;
+      const cols=Math.min(n,4);
+      const rows=Math.ceil(n/cols);
+      const bw=140, bh=64, hgap=24, vgap=36;
+      const totalW=cols*bw+(cols-1)*hgap;
+      const startX=(W-totalW)/2;
+      const startY=(H-rows*(bh+vgap))/2+20;
 
-                $('quiz-mcq-q').textContent = state.currentQuiz.mcq.question;
-                $('quiz-open-q').textContent = state.currentQuiz.open.question;
-
-                const opts = $('quiz-mcq-options');
-                opts.innerHTML = '';
-                state.currentQuiz.mcq.options.forEach(opt => {
-                    const lbl = document.createElement('label');
-                    lbl.className = 'radio-option';
-                    lbl.innerHTML = `<input type="radio" name="quiz-mcq" value="${opt[0]}"> ${window.sanitizeInput(opt)}`;
-                    opts.appendChild(lbl);
-                });
-            } catch (e) {
-                alert(e.message);
-                showScreen('screen-lesson');
-            }
-        };
-
-        $('btn-submit-quiz').onclick = async () => {
-            const mcqAns = document.querySelector('input[name="quiz-mcq"]:checked');
-            const openAns = $('quiz-open-ans').value.trim();
-
-            if (!mcqAns || !openAns) return alert("Please answer both questions.");
-
-            $('btn-submit-quiz').disabled = true;
-            $('btn-submit-quiz').textContent = 'Evaluating...';
-
-            const mcqCorrect = mcqAns.value === state.currentQuiz.mcq.correct;
-            let openEval = { passed: false, feedback: "Error evaluating." };
-
-            try {
-                openEval = await safeGeminiJSON(evalPrompt(state.currentQuiz.open.question, state.currentQuiz.open.model_answer, state.currentQuiz.open.keywords, openAns));
-            } catch (e) { console.error(e); }
-
-            $('btn-submit-quiz').disabled = false;
-            $('btn-submit-quiz').textContent = 'Submit Answers';
-
-            $('quiz-content').classList.add('hidden');
-            const feedbackBox = $('quiz-feedback');
-            feedbackBox.className = 'feedback-card';
-            $('micro-lesson-container').classList.add('hidden');
-            feedbackBox.classList.remove('hidden');
-
-            if (mcqCorrect && openEval.passed) {
-                feedbackBox.classList.add('success');
-                $('feedback-title').textContent = "Excellent!";
-                $('feedback-text').textContent = "You nailed it. " + openEval.feedback;
-
-                const xp = window.calculateXP(true, state.attemptNum);
-                state.sessionXP += xp;
-                updateXP(xp);
-
-                if (analytics) logEvent(analytics, 'quiz_passed', { topic: state.topic, xp_earned: xp, attempt: state.attemptNum });
-
-                $('btn-quiz-next').textContent = "Next Concept →";
-                $('btn-quiz-next').onclick = () => {
-                    state.currentStep++;
-                    if (state.currentStep > state.totalSteps) {
-                        saveProgress();
-                        showDashboard();
-                    } else {
-                        loadLesson();
-                    }
-                };
-            } else {
-                feedbackBox.classList.add('error');
-                $('feedback-title').textContent = "Not quite right";
-                $('feedback-text').textContent = openEval.feedback;
-
-                $('micro-lesson-container').classList.remove('hidden');
-                $('micro-lesson-text').innerHTML = '<span class="skeleton skeleton-text" style="display:inline-block; width:100px;"></span>';
-
-                const wrongTxt = !mcqCorrect ? mcqAns.value : openAns;
-                const rightTxt = !mcqCorrect ? state.currentQuiz.mcq.correct : state.currentQuiz.open.model_answer;
-
-                try {
-                    await fetchGemini(microLessonPrompt(state.topic, mcqCorrect ? state.currentQuiz.open.question : state.currentQuiz.mcq.question, wrongTxt, rightTxt), (chunk) => {
-                        const el = $('micro-lesson-text');
-                        if (el.querySelector('.skeleton')) el.innerHTML = '';
-                        el.textContent += chunk;
-                    });
-                } catch (err) { $('micro-lesson-text').textContent = 'Error loading micro-lesson.'; }
-
-                $('btn-quiz-next').textContent = "Try Again 🔄";
-                $('btn-quiz-next').onclick = () => {
-                    state.attemptNum++;
-                    $('quiz-feedback').classList.add('hidden');
-                    $('quiz-content').classList.remove('hidden');
-                };
-            }
-        };
-
-        function updateXP(amount) {
-            let curr = parseInt($('xp-val').textContent);
-            $('xp-val').textContent = curr + amount;
+      let rects='', texts='', arrows='';
+      nodes.forEach((node,i)=>{
+        const col=i%cols, row=Math.floor(i/cols);
+        const x=startX+col*(bw+hgap), y=startY+row*(bh+vgap);
+        const cx=x+bw/2, cy=y+bh/2;
+        const color=colors[i%colors.length];
+        rects+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="10" fill="${color}22" stroke="${color}" stroke-width="1.5"/>`;
+        const label=node.length>14?node.slice(0,13)+'…':node;
+        texts+=`<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" fill="${color}" font-size="12" font-weight="600" font-family="Sora,sans-serif">${sanitize(label)}</text>`;
+        // Arrow to next in same row
+        if(col<cols-1&&i+1<n){
+          const nx=x+bw+hgap; const ny=y+bh/2;
+          arrows+=`<line x1="${x+bw}" y1="${ny}" x2="${nx}" y2="${ny}" stroke="#334155" stroke-width="1.5" marker-end="url(#arr)"/>`;
         }
-
-        async function saveProgress() {
-            if (state.isGuest) {
-                let data = JSON.parse(localStorage.getItem('adaptLearnData') || '{"xp":0, "topics":[]}');
-                data.xp += state.sessionXP;
-                data.topics.push({ name: state.topic, date: Date.now() });
-                localStorage.setItem('adaptLearnData', JSON.stringify(data));
-            } else if (db && state.user) {
-                try {
-                    const docRef = doc(db, 'users', state.user.uid, 'topics', state.topic);
-                    await setDoc(docRef, {
-                        name: state.topic,
-                        masteryScore: window.calculateMasteryScore(state.totalSteps, state.totalSteps),
-                        lastStudied: new Date().toISOString(),
-                        nextReview: window.getNextReviewDate(new Date(), 100).toISOString()
-                    }, { merge: true });
-                } catch (e) { console.error("Firestore save error", e); }
-            }
+        // Arrow down to next row start
+        if(col===cols-1&&i+1<n){
+          const nx2=startX+bw/2, ny2=y+bh+vgap;
+          arrows+=`<line x1="${cx}" y1="${y+bh}" x2="${nx2}" y2="${ny2}" stroke="#334155" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>`;
         }
+      });
 
-        async function loadDashboardData() {
-            let xp = 0, topics = [];
-            if (state.isGuest) {
-                let data = JSON.parse(localStorage.getItem('adaptLearnData') || '{"xp":0, "topics":[]}');
-                xp = data.xp || 0;
-                topics = data.topics || [];
-            } else {
-                xp = parseInt($('xp-val').textContent) || 0;
-            }
-            $('dash-xp').textContent = xp;
-            $('xp-val').textContent = xp;
-            $('dash-concepts').textContent = topics.length * 5;
-            $('dash-streak').textContent = window.formatStreak(topics.length > 0 ? 1 : 0);
+      $('diagram-area').innerHTML = `
+        <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${sanitize(title)}">
+          <title>${sanitize(title)}</title>
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M2 1L8 5L2 9" fill="none" stroke="#64748B" stroke-width="1.5" stroke-linecap="round"/>
+            </marker>
+          </defs>
+          <text x="${W/2}" y="22" text-anchor="middle" fill="#94A3B8" font-size="13" font-family="Sora,sans-serif" font-weight="600">${sanitize(title)}</text>
+          ${arrows}${rects}${texts}
+        </svg>`;
+      return caption;
+    }
 
-            if (topics.length > 0) {
-                $('dash-topics-list').innerHTML = topics.map(t => `<div style="padding:1rem; border:1px solid var(--border-color); border-radius:8px; margin-bottom:0.5rem; display:flex; justify-content:space-between;"><span>${window.sanitizeInput(t.name)}</span> <span style="color:var(--accent-green)">Mastered</span></div>`).join('');
-            }
+    /* ── Auth ── */
+    $('btn-guest').onclick = () => { state.isGuest=true; showScreen('screen-topic'); loadDash(); $('xp-badge').classList.add('show'); };
+    if(auth){
+      $('btn-google-login').onclick = async()=>{
+        try {
+          const r=await signInWithPopup(auth,new GoogleAuthProvider());
+          state.user=r.user; state.isGuest=false;
+          $('btn-logout').classList.remove('hidden');
+          $('xp-badge').classList.add('show');
+          showScreen('screen-topic'); loadDash();
+          if(analytics) logEvent(analytics,'login',{method:'google'});
+        } catch(e){ alert('Login failed: '+e.message); }
+      };
+      $('btn-logout').onclick=()=>{ signOut(auth); location.reload(); };
+    }
 
-            const chart = $('dash-chart');
-            chart.innerHTML = '';
-            for (let i = 0; i < 7; i++) {
-                const height = Math.random() * 100 + 20;
-                chart.innerHTML += `<div class="bar" style="height:${height}px"><span>D${i + 1}</span></div>`;
-            }
+    /* ── Settings ── */
+    $('btn-settings').onclick=()=>{ $('api-key-input').value=sessionStorage.getItem('gemini_api_key')||''; $('modal-settings').classList.add('open'); };
+    $('btn-close-settings').onclick=()=>$('modal-settings').classList.remove('open');
+    $('btn-save-settings').onclick=()=>{
+      const v=$('api-key-input').value.trim();
+      if(!v){alert('Please enter a key.');return;}
+      if(!v.startsWith('AIza')){alert('Key should start with "AIza".');return;}
+      sessionStorage.setItem('gemini_api_key',v);
+      $('modal-settings').classList.remove('open');
+      announce('API key saved');
+    };
+
+    /* ── Theme toggle ── */
+    $('btn-theme').onclick=()=>{
+      const h=document.documentElement;
+      h.setAttribute('data-theme',h.getAttribute('data-theme')==='dark'?'light':'dark');
+    };
+
+    /* ── Chips ── */
+    document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{ $('topic-input').value=c.textContent; });
+
+    /* ═══════════════════════════════════════════
+       FLOW: TOPIC → PROBE → OVERVIEW → QUIZ → SCORE
+    ═══════════════════════════════════════════ */
+
+    /* ── Step 1: Topic submit ── */
+    $('btn-go').onclick = async()=>{
+      const raw=$('topic-input').value.trim();
+      if(!raw||raw.length<2){ alert('Please enter a topic (min 2 characters).'); return; }
+      if(raw.length>MAX_TOPIC_LEN){ alert(`Topic must be under ${MAX_TOPIC_LEN} characters.`); return; }
+      state.topic=sanitize(raw);
+      state.sessionXP=0;
+      state.probeIdx=0; state.probeCorrect=0; state.probeData=[];
+      if(analytics) logEvent(analytics,'topic_started',{topic:state.topic});
+      startProbe();
+    };
+
+    /* ── Step 2: Probe ── */
+    async function startProbe(){
+      showScreen('screen-probe');
+      $('probe-topic-name').textContent=state.topic;
+      $('probe-heading').textContent=`Quick check on "${state.topic}"`;
+      $('probe-loading').classList.remove('hidden');
+      $('probe-card').classList.add('hidden');
+      $('probe-result').classList.add('hidden');
+      setProbeProgress(0);
+
+      try {
+        const data = await geminiJSON(
+          `You are an expert educator. Topic: "${state.topic}"\nGenerate exactly 3 multiple-choice questions to assess current knowledge.\nRespond ONLY in this exact JSON:\n{"level":"beginner|intermediate|advanced","questions":[{"question":"...","options":["A. ...","B. ...","C. ...","D. ..."],"correct":"A","explanation":"..."}]}`
+        );
+        state.probeData = data.questions||[];
+        $('probe-loading').classList.add('hidden');
+        renderProbeQ();
+      } catch(e){ alert(e.message); showScreen('screen-topic'); }
+    }
+
+    function setProbeProgress(n){
+      const pct=Math.round((n/3)*100);
+      $('probe-prog').style.width=pct+'%';
+      $('probe-prog').setAttribute('aria-valuenow',pct);
+    }
+
+    function renderProbeQ(){
+      const q=state.probeData[state.probeIdx];
+      if(!q) return;
+      $('probe-card').classList.remove('hidden');
+      $('btn-probe-next').disabled=true;
+      $('probe-q').textContent=`Q${state.probeIdx+1}. ${q.question}`;
+      setProbeProgress(state.probeIdx);
+      const opts=$('probe-opts'); opts.innerHTML='';
+      q.options.forEach(opt=>{
+        const lbl=document.createElement('label');
+        lbl.className='opt-label';
+        lbl.innerHTML=`<input type="radio" name="probe" value="${opt[0]}"> ${sanitize(opt)}`;
+        lbl.querySelector('input').onchange=()=>$('btn-probe-next').disabled=false;
+        opts.appendChild(lbl);
+      });
+    }
+
+    $('btn-probe-next').onclick=()=>{
+      const sel=document.querySelector('input[name="probe"]:checked');
+      if(!sel) return;
+      const q=state.probeData[state.probeIdx];
+      if(sel.value===q.correct) state.probeCorrect++;
+      state.probeIdx++;
+      if(state.probeIdx<state.probeData.length){ renderProbeQ(); }
+      else {
+        setProbeProgress(3);
+        const sc=calcMastery(state.probeCorrect,3);
+        state.level=calcLevel(sc);
+        $('probe-card').classList.add('hidden');
+        $('probe-result').classList.remove('hidden');
+        $('probe-level').textContent=state.level;
+        $('probe-emoji').textContent=state.level==='advanced'?'🎓':state.level==='intermediate'?'🚀':'🌱';
+        $('probe-msg').textContent=state.level==='advanced'
+          ?'Great foundation! We\'ll dive deep with advanced content.'
+          :state.level==='intermediate'
+          ?'Solid start! We\'ll build on what you know with clear explanations.'
+          :'No worries! We\'ll start from basics with clear examples.';
+      }
+    };
+
+    $('btn-start-overview').onclick=()=>startOverview();
+
+    /* ── Step 3: Overview (Theory + Visual + Examples in parallel) ── */
+    async function startOverview(){
+      showScreen('screen-overview');
+      $('ov-title').textContent=state.topic;
+      $('ov-topic-crumb').textContent=state.topic;
+      $('ov-level-tag').textContent=`Level: ${state.level} · Personalized lesson`;
+      $('btn-take-test').disabled=true;
+
+      // Reset tab panels
+      showTab('theory');
+      $('theory-loading').classList.remove('hidden');
+      $('theory-content').classList.add('hidden');
+      $('theory-actions').classList.add('hidden');
+      $('visual-loading').classList.remove('hidden');
+      $('visual-content').classList.add('hidden');
+      $('examples-loading').classList.remove('hidden');
+      $('examples-content').classList.add('hidden');
+
+      if(analytics) logEvent(analytics,'lesson_viewed',{topic:state.topic,level:state.level});
+
+      // Load all 3 in parallel
+      Promise.all([loadTheory(), loadVisual(), loadExamples()]).then(()=>{
+        $('btn-take-test').disabled=false;
+      });
+    }
+
+    async function loadTheory(){
+      const prompt=`You are a world-class ${state.level}-level educator. Topic: "${state.topic}"\n\nWrite a comprehensive theory lesson for a ${state.level} learner.\n\nStructure:\n1. **One-sentence bold summary** of the topic\n2. Background/context (2 paragraphs)\n3. Core mechanism / how it works (2-3 paragraphs)\n4. Key components or stages (mention 3-5)\n5. 💡 Key insight: one memorable takeaway\n\nUse **bold** for key terms. Write in plain paragraphs, no markdown headers. Aim for 400-600 words.`;
+      state.theoryText='';
+      try {
+        await geminiStream(prompt, chunk=>{
+          if(!state.theoryText){ $('theory-loading').classList.add('hidden'); $('theory-content').classList.remove('hidden'); $('theory-content').innerHTML=''; }
+          state.theoryText+=chunk;
+          $('theory-content').innerHTML=renderTheory(state.theoryText);
+        });
+        $('theory-actions').style.display='flex';
+        $('theory-actions').classList.remove('hidden');
+      } catch(e){
+        $('theory-loading').classList.add('hidden');
+        $('theory-content').classList.remove('hidden');
+        $('theory-content').innerHTML=`<p style="color:var(--red)">${sanitize(e.message)}</p>`;
+      }
+    }
+
+    async function loadVisual(){
+      const prompt=`Topic: "${state.topic}"\nCreate a visual overview for a diagram.\nRespond ONLY with valid JSON:\n{"diagram_title":"...","caption":"One sentence describing what this diagram shows","nodes":["concept1","concept2","concept3","concept4","concept5"],"description":"2-3 sentences explaining the visual flow between these concepts"}`;
+      try {
+        state.visualData=await geminiJSON(prompt);
+        const caption=generateDiagram(state.topic, state.visualData);
+        $('visual-caption').textContent=caption;
+        $('visual-text').innerHTML=renderTheory(state.visualData?.description||'');
+        $('visual-loading').classList.add('hidden');
+        $('visual-content').classList.remove('hidden');
+      } catch(e){
+        $('visual-loading').innerHTML=`<p style="color:var(--red);font-size:.9rem;">${sanitize(e.message)}</p>`;
+      }
+    }
+
+    async function loadExamples(){
+      const prompt=`Topic: "${state.topic}"\nLevel: ${state.level}\nGenerate 3 real-world examples and 1 analogy.\nRespond ONLY with valid JSON:\n{"examples":[{"icon":"emoji","title":"...","description":"2 sentences max"},{"icon":"emoji","title":"...","description":"2 sentences max"},{"icon":"emoji","title":"...","description":"2 sentences max"}],"analogy":"One vivid analogy comparing ${state.topic} to something everyday"}`;
+      try {
+        state.examplesData=await geminiJSON(prompt);
+        $('ex-topic-name').textContent=state.topic;
+        const grid=$('examples-grid'); grid.innerHTML='';
+        (state.examplesData.examples||[]).forEach(ex=>{
+          const d=document.createElement('div');
+          d.className='example-card';
+          d.innerHTML=`<div class="ex-icon">${sanitize(ex.icon)||'💡'}</div><h4>${sanitize(ex.title)}</h4><p>${sanitize(ex.description)}</p>`;
+          grid.appendChild(d);
+        });
+        if(state.examplesData.analogy){
+          $('analogy-box').style.display='block';
+          $('analogy-text').textContent=state.examplesData.analogy;
         }
+        $('examples-loading').classList.add('hidden');
+        $('examples-content').classList.remove('hidden');
+      } catch(e){
+        $('examples-loading').innerHTML=`<p style="color:var(--red);font-size:.9rem;">${sanitize(e.message)}</p>`;
+      }
+    }
 
-        function showDashboard() {
-            loadDashboardData();
-            showScreen('screen-dashboard');
-        }
+    /* ── Tab switching ── */
+    function showTab(name){
+      ['theory','visual','examples'].forEach(t=>{
+        $(`tab-${t}-panel`).classList.toggle('hidden', t!==name);
+        const btn=document.querySelector(`[data-tab="${t}"]`);
+        if(btn){ btn.classList.toggle('active',t===name); btn.setAttribute('aria-selected',t===name); }
+      });
+    }
+    document.querySelectorAll('.tab-btn').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
-        $('btn-dash-home').onclick = () => showScreen('screen-topic');
+    /* ── Adaptive actions ── */
+    $('btn-simpler').onclick=()=>{ if(state.theoryText) applyAdaptive(`Rewrite this lesson much simpler for a complete beginner. Use very short sentences, simple words, and everyday analogies. Original: "${state.theoryText.slice(0,1500)}"`,'simpler'); };
+    $('btn-deeper').onclick=()=>{ if(state.theoryText) applyAdaptive(`Expand this lesson with more depth, technical detail, and edge cases for an advanced learner. Original: "${state.theoryText.slice(0,1500)}"`,'deeper'); };
+    $('btn-example-btn').onclick=()=>{ if(state.topic) applyAdaptive(`Give 3 more very specific, vivid real-world examples of "${state.topic}". Each should be 2-3 sentences and include concrete facts or numbers.`,'examples'); };
 
-        const pContainer = $('particles');
-        for (let i = 0; i < 30; i++) {
-            const p = document.createElement('div');
-            p.className = 'particle';
-            p.style.width = Math.random() * 10 + 5 + 'px';
-            p.style.height = p.style.width;
-            p.style.left = Math.random() * 100 + 'vw';
-            p.style.top = Math.random() * 100 + 'vh';
-            p.style.animationDelay = Math.random() * 5 + 's';
-            pContainer.appendChild(p);
-        }
-    </script>
+    async function applyAdaptive(prompt, action){
+      $('theory-content').innerHTML='<div style="display:flex;gap:.5rem;align-items:center;"><div class="spinner"></div> Adapting lesson...</div>';
+      $('theory-actions').classList.add('hidden');
+      state.theoryText='';
+      if(analytics) logEvent(analytics,'adaptive_action',{action});
+      try {
+        await geminiStream(prompt, chunk=>{
+          if(!state.theoryText) $('theory-content').innerHTML='';
+          state.theoryText+=chunk;
+          $('theory-content').innerHTML=renderTheory(state.theoryText);
+        });
+        $('theory-actions').style.display='flex';
+        $('theory-actions').classList.remove('hidden');
+      } catch(e){ $('theory-content').innerHTML=`<p style="color:var(--red)">${sanitize(e.message)}</p>`; }
+    }
+
+    /* ── TTS ── */
+    $('btn-tts').onclick=()=>{
+      if(!window.speechSynthesis){ alert('TTS not supported in your browser.'); return; }
+      window.speechSynthesis.cancel();
+      if(state.theoryText){ const u=new SpeechSynthesisUtterance(state.theoryText); window.speechSynthesis.speak(u); announce('Reading aloud'); }
+    };
+
+    /* ── Translate ── */
+    $('lang-select').onchange=async(e)=>{
+      const lang=e.target.value; if(!lang||!state.theoryText) return;
+      $('theory-content').innerHTML='<div style="display:flex;gap:.5rem;align-items:center;"><div class="spinner"></div> Translating...</div>';
+      try {
+        const t=await geminiJSON(`Translate this lesson to ${lang}. Keep 💡 Key insight: prefix. Return JSON: {"translated":"..."}\n\n${state.theoryText.slice(0,2000)}`);
+        state.theoryText=t.translated||state.theoryText;
+        $('theory-content').innerHTML=renderTheory(state.theoryText);
+        if(analytics) logEvent(analytics,'lesson_translated',{language:lang});
+      } catch(err){ $('theory-content').innerHTML=renderTheory(state.theoryText); alert(err.message); }
+    };
+
+    /* ── Step 4: 5-Question Quiz ── */
+    $('btn-take-test').onclick=()=>startQuiz();
+
+    async function startQuiz(){
+      showScreen('screen-quiz');
+      $('quiz-topic-crumb').textContent=state.topic;
+      $('quiz-loading').classList.remove('hidden');
+      $('quiz-questions').classList.add('hidden');
+      state.qIdx=0; state.answers=[];
+
+      const prompt=`You are an expert educator.\nTopic: "${state.topic}"\nLearner level: "${state.level}"\nTheory taught: "${state.theoryText.slice(0,1000)}"\n\nGenerate exactly ${TOTAL_Q} multiple-choice questions to test understanding of this topic.\nMix question difficulty: 2 easy, 2 medium, 1 hard.\nQuestions must be directly about the topic content.\nRespond ONLY with valid JSON:\n{"questions":[{"question":"...","options":["A. ...","B. ...","C. ...","D. ..."],"correct":"A","explanation":"Why this is correct in 1-2 sentences"}]}`;
+
+      try {
+        const data=await geminiJSON(prompt);
+        state.quizQuestions=data.questions||[];
+        if(!state.quizQuestions.length) throw new Error('No questions generated.');
+        $('quiz-loading').classList.add('hidden');
+        $('quiz-questions').classList.remove('hidden');
+        if(analytics) logEvent(analytics,'quiz_started',{topic:state.topic,level:state.level});
+        renderQuestion();
+      } catch(e){ alert(e.message); showScreen('screen-overview'); }
+    }
+
+    function renderQuestion(){
+      const q=state.quizQuestions[state.qIdx];
+      const pct=Math.round((state.qIdx/TOTAL_Q)*100);
+      $('quiz-prog').style.width=pct+'%';
+      $('quiz-prog').setAttribute('aria-valuenow',pct);
+      $('q-current').textContent=state.qIdx+1;
+
+      $('q-feedback').classList.add('hidden');
+      $('btn-q-next').classList.add('hidden');
+      $('btn-q-submit').classList.remove('hidden');
+      $('btn-q-submit').disabled=true;
+
+      const wrap=$('current-q-wrap');
+      wrap.innerHTML=`
+        <div class="q-card">
+          <p class="q-text"><span class="q-num">Q${state.qIdx+1}</span>${sanitize(q.question)}</p>
+          <fieldset style="border:none;padding:0;">
+            <legend class="sr-only">Choose the correct answer</legend>
+            <div id="opts-wrap"></div>
+          </fieldset>
+        </div>`;
+
+      const ow=$('opts-wrap');
+      q.options.forEach(opt=>{
+        const lbl=document.createElement('label');
+        lbl.className='opt-label';
+        lbl.innerHTML=`<input type="radio" name="quiz-q" value="${opt[0]}"> ${sanitize(opt)}`;
+        lbl.querySelector('input').onchange=()=>$('btn-q-submit').disabled=false;
+        ow.appendChild(lbl);
+      });
+    }
+
+    $('btn-q-submit').onclick=()=>{
+      const sel=document.querySelector('input[name="quiz-q"]:checked');
+      if(!sel) return;
+      const q=state.quizQuestions[state.qIdx];
+      const correct=sel.value===q.correct;
+      state.answers.push({question:q.question,userAnswer:sel.value,correct,explanation:q.explanation,correctAnswer:q.correct,options:q.options});
+
+      // Highlight options
+      document.querySelectorAll('#opts-wrap .opt-label').forEach(lbl=>{
+        const inp=lbl.querySelector('input');
+        if(inp.value===q.correct) lbl.classList.add('correct');
+        else if(inp.checked && !correct) lbl.classList.add('wrong');
+        else lbl.classList.add('reveal');
+        inp.disabled=true;
+      });
+
+      // Show feedback
+      const fb=$('q-feedback');
+      fb.classList.remove('hidden');
+      fb.style.background=correct?'rgba(16,185,129,.12)':'rgba(239,68,68,.12)';
+      fb.style.border=`1px solid ${correct?'var(--green)':'var(--red)'}`;
+      fb.innerHTML=`<strong>${correct?'✅ Correct!':'❌ Incorrect'}</strong> ${sanitize(q.explanation)}`;
+
+      $('btn-q-submit').classList.add('hidden');
+
+      if(state.qIdx+1<TOTAL_Q){
+        $('btn-q-next').classList.remove('hidden');
+        $('btn-q-next').textContent=`Next Question → (${state.qIdx+2}/${TOTAL_Q})`;
+      } else {
+        $('btn-q-next').classList.remove('hidden');
+        $('btn-q-next').textContent='🏆 See My Score!';
+      }
+    };
+
+    $('btn-q-next').onclick=()=>{
+      state.qIdx++;
+      if(state.qIdx<TOTAL_Q){ renderQuestion(); }
+      else { showScore(); }
+    };
+
+    /* ── Step 5: Score screen ── */
+    function showScore(){
+      showScreen('screen-score');
+      $('score-topic-crumb').textContent=state.topic;
+
+      const correct=state.answers.filter(a=>a.correct).length;
+      const pct=Math.round((correct/TOTAL_Q)*100);
+      const xpEarned=calcQuizXP(correct,TOTAL_Q);
+      state.sessionXP+=xpEarned;
+      updateXP(xpEarned);
+
+      // Animate ring
+      const circumference=2*Math.PI*68; // r=68
+      const offset=circumference*(1-pct/100);
+      setTimeout(()=>{ $('score-circle').style.strokeDashoffset=offset; },100);
+
+      $('score-pct').textContent=pct+'%';
+      $('score-fraction').textContent=`${correct}/${TOTAL_Q} correct`;
+      $('score-grade').textContent=pct>=80?'🏆 Excellent!':pct>=60?'👍 Good job!':pct>=40?'📚 Keep studying':'🌱 Just getting started';
+      $('score-sub').textContent=`You answered ${correct} out of ${TOTAL_Q} questions correctly on "${state.topic}"`;
+      $('xp-earned-val').textContent=xpEarned;
+
+      // Breakdown
+      const list=$('score-breakdown-list'); list.innerHTML='';
+      state.answers.forEach((a,i)=>{
+        const row=document.createElement('div');
+        row.className='score-row';
+        row.innerHTML=`<span style="flex:1;padding-right:.5rem;font-size:.88rem;">${sanitize(a.question.slice(0,60))}${a.question.length>60?'…':''}</span>
+          <span class="${a.correct?'badge-correct':'badge-wrong'}">${a.correct?'✓ Correct':'✗ Wrong'}</span>`;
+        list.appendChild(row);
+      });
+
+      saveProgress(correct,pct);
+      if(analytics) logEvent(analytics,'quiz_completed',{topic:state.topic,score:pct,correct,total:TOTAL_Q,xp:xpEarned});
+    }
+
+    function updateXP(amt){
+      state.totalXP+=amt;
+      $('xp-val').textContent=state.totalXP;
+    }
+
+    $('btn-review-quiz').onclick=()=>showReview();
+    $('btn-retry-quiz').onclick=()=>startQuiz();
+    $('btn-new-topic').onclick=()=>{ showScreen('screen-topic'); $('topic-input').value=''; };
+
+    /* ── Step 6: Review screen ── */
+    function showReview(){
+      showScreen('screen-review');
+      $('rev-topic-crumb').textContent=state.topic;
+      const list=$('review-list'); list.innerHTML='';
+      state.answers.forEach((a,i)=>{
+        const card=document.createElement('div');
+        card.className='card';
+        card.style.background=a.correct?'rgba(16,185,129,.05)':'rgba(239,68,68,.05)';
+        card.style.borderColor=a.correct?'var(--green)':'var(--red)';
+        card.innerHTML=`
+          <p style="font-weight:600;margin-bottom:.7rem;"><span class="${a.correct?'badge-correct':'badge-wrong'}" style="margin-right:.5rem;">${a.correct?'✓':'✗'}</span>Q${i+1}: ${sanitize(a.question)}</p>
+          ${a.options.map(o=>`<div class="opt-label ${o[0]===a.correctAnswer?'correct':o[0]===a.userAnswer&&!a.correct?'wrong':''}" style="cursor:default;">${sanitize(o)}</div>`).join('')}
+          <p style="margin-top:.8rem;font-size:.88rem;color:var(--muted2);font-style:italic;">💡 ${sanitize(a.explanation)}</p>`;
+        list.appendChild(card);
+      });
+    }
+    $('btn-back-score').onclick=()=>showScreen('screen-score');
+
+    /* ── Save progress ── */
+    async function saveProgress(correct, pct){
+      const entry={ topic:state.topic, level:state.level, score:pct, correct, total:TOTAL_Q, xp:state.sessionXP, date:Date.now() };
+      if(state.isGuest){
+        const d=JSON.parse(localStorage.getItem('adaptLearnData')||'{"xp":0,"history":[]}');
+        d.xp=(d.xp||0)+state.sessionXP;
+        d.history=(d.history||[]);
+        d.history.unshift(entry);
+        if(d.history.length>20) d.history=d.history.slice(0,20);
+        localStorage.setItem('adaptLearnData',JSON.stringify(d));
+      } else if(db&&state.user){
+        try {
+          await setDoc(doc(db,'users',state.user.uid,'sessions',Date.now().toString()), entry);
+        } catch(e){ console.error('Firestore save error',e); }
+      }
+    }
+
+    /* ── Dashboard ── */
+    async function loadDash(){
+      let xp=0, history=[];
+      if(state.isGuest){
+        const d=JSON.parse(localStorage.getItem('adaptLearnData')||'{"xp":0,"history":[]}');
+        xp=d.xp||0; history=d.history||[];
+      }
+      state.totalXP=xp;
+      $('xp-val').textContent=xp;
+      $('dash-xp').textContent=xp;
+      $('dash-topics-count').textContent=history.length;
+      const avg=history.length?Math.round(history.reduce((s,h)=>s+(h.score||0),0)/history.length):0;
+      $('dash-avg').textContent=history.length?(avg+'%'):'—';
+      $('dash-streak').textContent=history.length+'🔥';
+
+      // Bars
+      const bars=$('dash-bars'); bars.innerHTML='';
+      for(let i=6;i>=0;i--){
+        const day=new Date(); day.setDate(day.getDate()-i);
+        const dd=day.toDateString();
+        const h=history.filter(e=>new Date(e.date).toDateString()===dd);
+        const xpDay=h.reduce((s,e)=>s+(e.xp||0),0);
+        const pct=Math.min(100,xpDay/2);
+        const b=document.createElement('div');
+        b.className='mini-bar';
+        b.style.height=Math.max(4,pct)+'%';
+        b.title=`${dd}: ${xpDay} XP`;
+        bars.appendChild(b);
+      }
+
+      // Topic list
+      const tl=$('dash-topic-list');
+      if(history.length){
+        tl.innerHTML=history.slice(0,8).map(h=>`
+          <div class="topic-row">
+            <span class="name">${sanitize(h.topic)}</span>
+            <span class="score-tag">${h.score||0}% · ${h.xp||0}XP</span>
+          </div>`).join('');
+      } else {
+        tl.innerHTML='<p class="muted" style="font-size:.9rem;">No topics yet. Start learning!</p>';
+      }
+    }
+
+    $('btn-dash-learn').onclick=()=>{ showScreen('screen-topic'); $('topic-input').value=''; };
+
+    /* ── History on topic screen ── */
+    function loadTopicHistory(){
+      const d=JSON.parse(localStorage.getItem('adaptLearnData')||'{"history":[]}');
+      const hist=d.history||[];
+      if(!hist.length){ $('history-wrap').style.display='none'; return; }
+      $('history-wrap').style.display='block';
+      $('history-list').innerHTML=hist.slice(0,5).map(h=>`
+        <div class="topic-row" style="cursor:pointer;" onclick="document.getElementById('topic-input').value='${sanitize(h.topic)}'">
+          <span class="name">${sanitize(h.topic)}</span>
+          <span class="score-tag">${h.score||0}%</span>
+        </div>`).join('');
+    }
+
+    /* ── Particles (landing only) ── */
+    (()=>{
+      const el=document.createElement('div');
+      el.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;overflow:hidden;';
+      for(let i=0;i<18;i++){
+        const p=document.createElement('div');
+        const s=Math.random()*8+4;
+        p.style.cssText=`position:absolute;width:${s}px;height:${s}px;border-radius:50%;background:#3B82F6;filter:blur(1px);opacity:.4;left:${Math.random()*100}vw;top:${Math.random()*100}vh;animation:floatDot ${4+Math.random()*4}s ease-in-out infinite;animation-delay:${Math.random()*3}s;`;
+        el.appendChild(p);
+      }
+      document.body.prepend(el);
+      // remove after navigate
+      document.querySelectorAll('#btn-guest,#btn-google-login').forEach(b=>b.addEventListener('click',()=>el.remove()));
+    })();
+
+    // Init
+    loadTopicHistory();
+  </script>
 </body>
-
 </html>
