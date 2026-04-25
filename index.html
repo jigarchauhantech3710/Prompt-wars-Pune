@@ -657,14 +657,44 @@
       perf      = getPerformance(app);
     } catch(e) { console.warn("Firebase not configured — guest mode only."); }
 
-    /* ── Constants ── */
+    /**
+     * AdaptLearn — AI Learning Companion v2.0.0
+     * @description Personalized learning: Probe → Theory + Diagram + Examples → 5-Q Scored Test
+     * @version 2.0.0
+     * @license MIT
+     * Google Services: Gemini 2.0 Flash, Firebase Auth, Firestore, Analytics, Performance, Web Speech API, Google Fonts
+     */
+
+    // ─────────────────────────────────────────
+    // CONSTANTS — single source of truth
+    // ─────────────────────────────────────────
     // Replace the deprecated model
     const GEMINI_MODEL = 'gemini-2.5-flash';
-    const GEMINI_BASE   = 'https://generativelanguage.googleapis.com/v1beta/models';
-    const MAX_TOPIC_LEN = 200;
-    const TOTAL_Q       = 5;
+    const GEMINI_BASE     = 'https://generativelanguage.googleapis.com/v1beta/models';
+    const STORAGE_KEY     = 'gemini_api_key';
+    const LOCAL_DATA_KEY  = 'adaptLearnData';
+    const MAX_TOPIC_LEN   = 200;
+    const MIN_TOPIC_LEN   = 2;
+    const TOTAL_Q         = 5;
+    const PROBE_Q         = 3;
+    const RATE_MAX        = 12;
+    const RATE_WIN        = 60000;
+    const STREAM_TEMP     = 0.7;
+    const JSON_TEMP       = 0.4;
+    const STREAM_TOKENS   = 3000;
+    const JSON_TOKENS     = 2048;
+    const MAX_HISTORY     = 20;
+    const LEVEL_ADV_MIN   = 80;
+    const LEVEL_INT_MIN   = 50;
+    const REVIEW_ADV_DAYS = 7;
+    const REVIEW_INT_DAYS = 3;
+    const REVIEW_BEG_DAYS = 1;
+    const XP_FIRST_TRY    = 50;
+    const XP_RETRY        = 25;
 
-    /* ── State ── */
+    // ─────────────────────────────────────────
+    // STATE — single mutable object
+    // ─────────────────────────────────────────
     const state = {
       user: null, isGuest: true,
       topic: '', level: 'beginner',
@@ -674,23 +704,145 @@
       sessionXP: 0, totalXP: 0,
     };
 
-    /* ── Rate limiter ── */
-    const rl = { calls:[], max:12, win:60000,
-      ok() { const n=Date.now(); this.calls=this.calls.filter(t=>n-t<this.win); if(this.calls.length>=this.max)return false; this.calls.push(n); return true; }
+    // ─────────────────────────────────────────
+    // RATE LIMITER
+    // ─────────────────────────────────────────
+    const rl = {
+      calls: [],
+      /** @returns {boolean} true if call is allowed within rate window */
+      ok() {
+        const n = Date.now();
+        // Remove calls outside the time window
+        this.calls = this.calls.filter(t => n - t < RATE_WIN);
+        if (this.calls.length >= RATE_MAX) return false;
+        this.calls.push(n);
+        return true;
+      }
     };
 
-    /* ── Utility functions (exported to window for tests) ── */
-    const sanitize = (s) => { if(!s) return ''; const d=document.createElement('div'); d.textContent=s; return d.innerHTML; };
-    const parseJSON = (s) => { try{ return JSON.parse(s.replace(/```json/gi,'').replace(/```/g,'').trim()); }catch(e){ throw new Error("Invalid JSON response from Gemini"); } };
-    const calcMastery = (c,t) => t===0?0:Math.round((c/t)*100);
-    const calcLevel = (sc) => sc>=80?'advanced':sc>=50?'intermediate':'beginner';
-    const calcXP = (correct, attempt) => !correct?0:(attempt===1?50:25);
-    const calcQuizXP = (score, total) => Math.round((score/total)*100);
-    const nextReview = (last, m) => { const d=new Date(last); d.setDate(d.getDate()+(m>=80?7:m>=50?3:1)); return d; };
-    const streak = (days) => `${days} day streak 🔥`;
-    const buildLessonPrompt = (topic, level, concept, step) =>
-      `You are a world-class adaptive tutor.\nTopic: "${topic}"\nLearner level: "${level}"\nCurrent concept: "${concept}" (Step ${step} of 5)\nWrite a clear engaging lesson.\nRules:\n- Beginner: simple language, everyday analogies\n- Intermediate: correct terms, one analogy\n- Advanced: technical depth, edge cases\nFormat:\n1. Bold one-sentence summary\n2. Core explanation (3-4 paragraphs)\n3. Key takeaway prefixed "💡 Key insight:"\nNo markdown headers. Plain paragraphs only.`;
+    // ─────────────────────────────────────────
+    // UTILITY FUNCTIONS
+    // ─────────────────────────────────────────
 
+    /**
+     * Sanitizes raw user input to prevent XSS attacks.
+     * @param {string} s - Raw input string
+     * @returns {string} HTML-escaped safe string
+     */
+    const sanitize = (s) => {
+      if (!s) return '';
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    };
+
+    /**
+     * Parses Gemini API response, stripping optional markdown fences.
+     * @param {string} s - Raw response text from Gemini
+     * @returns {Object} Parsed JSON object
+     * @throws {Error} If JSON is invalid after cleanup
+     */
+    const parseJSON = (s) => {
+      try {
+        return JSON.parse(s.replace(/```json/gi, '').replace(/```/g, '').trim());
+      } catch (e) {
+        throw new Error('Invalid JSON response from Gemini');
+      }
+    };
+
+    /**
+     * Calculates mastery score as integer percentage.
+     * @param {number} c - Correct answer count
+     * @param {number} t - Total question count
+     * @returns {number} Score 0–100, safe against division by zero
+     */
+    const calcMastery = (c, t) => t === 0 ? 0 : Math.round((c / t) * 100);
+
+    /**
+     * Determines learner level from a probe score.
+     * @param {number} sc - Score 0–100
+     * @returns {'beginner'|'intermediate'|'advanced'} Learner level string
+     */
+    const calcLevel = (sc) => sc >= LEVEL_ADV_MIN ? 'advanced' : sc >= LEVEL_INT_MIN ? 'intermediate' : 'beginner';
+
+    /**
+     * Calculates XP for a single probe question answer.
+     * @param {boolean} correct - Whether the answer was correct
+     * @param {number} attempt - Attempt number (1 = first try)
+     * @returns {number} XP: 50 first try, 25 retry, 0 wrong
+     */
+    const calcXP = (correct, attempt) => !correct ? 0 : (attempt === 1 ? XP_FIRST_TRY : XP_RETRY);
+
+    /**
+     * Calculates total XP for a completed 5-question quiz.
+     * @param {number} score - Number of correct answers
+     * @param {number} total - Total questions (should be TOTAL_Q)
+     * @returns {number} XP from 0 to 100
+     */
+    const calcQuizXP = (score, total) => total === 0 ? 0 : Math.round((score / total) * 100);
+
+    /**
+     * Returns the next spaced-repetition review Date based on mastery.
+     * @param {Date|string} last - Date of last study session
+     * @param {number} m - Mastery score 0–100
+     * @returns {Date} Next recommended review date
+     */
+    const nextReview = (last, m) => {
+      const d = new Date(last);
+      // Higher mastery = longer interval before review needed
+      const days = m >= LEVEL_ADV_MIN ? REVIEW_ADV_DAYS : m >= LEVEL_INT_MIN ? REVIEW_INT_DAYS : REVIEW_BEG_DAYS;
+      d.setDate(d.getDate() + days);
+      return d;
+    };
+
+    /**
+     * Formats a streak count into a human-readable display string.
+     * @param {number} days - Number of consecutive study days
+     * @returns {string} Formatted streak string with fire emoji
+     */
+    const streak = (days) => `${days} day streak 🔥`;
+
+    /**
+     * Builds the adaptive Gemini lesson prompt for a given topic and level.
+     * @param {string} topic - Subject being learned
+     * @param {string} level - Learner level (beginner|intermediate|advanced)
+     * @param {string} concept - Specific concept within the topic
+     * @param {number} step - Current step number (1–5)
+     * @returns {string} Formatted prompt string for Gemini API
+     */
+    const buildLessonPrompt = (topic, level, concept, step) => {
+      if (!topic || !level || !concept || !step) return '';
+      return `You are a world-class adaptive tutor.\nTopic: "${topic}"\nLearner level: "${level}"\nCurrent concept: "${concept}" (Step ${step} of 5)\nWrite a clear engaging lesson.\nRules:\n- Beginner: simple language, everyday analogies\n- Intermediate: correct terms, one analogy\n- Advanced: technical depth, edge cases\nFormat:\n1. Bold one-sentence summary\n2. Core explanation (3-4 paragraphs)\n3. Key takeaway prefixed "💡 Key insight:"\nNo markdown headers. Plain paragraphs only.`;
+    };
+
+    /**
+     * Returns a grade label string for a quiz score percentage.
+     * @param {number} pct - Score percentage 0–100
+     * @returns {string} Human-readable grade label
+     */
+    const getScoreGrade = (pct) => {
+      if (pct >= 80) return 'Excellent';
+      if (pct >= 60) return 'Good job';
+      if (pct >= 40) return 'Keep studying';
+      return 'Just getting started';
+    };
+
+    /**
+     * Validates a topic input string against all business rules.
+     * @param {string} raw - Raw topic string from input field
+     * @returns {{valid: boolean, error: string|null}} Validation result
+     */
+    const validateTopic = (raw) => {
+      if (!raw || raw.trim().length < MIN_TOPIC_LEN)
+        return { valid: false, error: `Please enter a topic (at least ${MIN_TOPIC_LEN} characters).` };
+      if (raw.length > MAX_TOPIC_LEN)
+        return { valid: false, error: `Topic must be under ${MAX_TOPIC_LEN} characters.` };
+      if (/<script|javascript:|on\w+=/i.test(raw))
+        return { valid: false, error: 'Invalid characters detected in topic.' };
+      return { valid: true, error: null };
+    };
+
+    // Export to window for unit tests
     window.calculateMasteryScore = calcMastery;
     window.determineLevel        = calcLevel;
     window.getNextReviewDate     = nextReview;
@@ -700,70 +852,149 @@
     window.formatStreak          = streak;
     window.buildLessonPrompt     = buildLessonPrompt;
     window.calculateQuizXP       = calcQuizXP;
+    window.getScoreGrade         = getScoreGrade;
 
-    /* ── DOM helpers ── */
+    // ─────────────────────────────────────────
+    // DOM HELPERS
+    // ─────────────────────────────────────────
+
+    /** @param {string} id - Element ID @returns {HTMLElement} */
     const $ = id => document.getElementById(id);
-    const announce = m => { $('aria-live').textContent=''; requestAnimationFrame(()=>{ $('aria-live').textContent=m; }); };
-    const showScreen = id => {
-      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-      $(id).classList.add('active');
-      announce(`Navigated to ${id.replace('screen-','')}`);
+
+    /**
+     * Announces a message to screen readers via aria-live region.
+     * Uses rAF to ensure the DOM update fires reliably.
+     * @param {string} m - Message text
+     */
+    const announce = m => {
+      $('aria-live').textContent = '';
+      requestAnimationFrame(() => { $('aria-live').textContent = m; });
     };
 
-    /* ── Gemini API ── */
+    /**
+     * Activates a named screen and hides all others.
+     * @param {string} id - Screen element ID to show
+     */
+    const showScreen = id => {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      $(id).classList.add('active');
+      announce(`Navigated to ${id.replace('screen-', '')}`);
+    };
+
+    // ─────────────────────────────────────────
+    // GEMINI API
+    // ─────────────────────────────────────────
+
+    /**
+     * Retrieves and validates the stored Gemini API key.
+     * Opens settings modal if key is missing or malformed.
+     * @returns {string} Valid API key string
+     * @throws {Error} If key is absent or does not start with 'AIza'
+     */
     function getKey() {
-      const k = sessionStorage.getItem('gemini_api_key');
-      if(!k||!k.startsWith('AIza')) { $('modal-settings').classList.add('open'); throw new Error('Add your Gemini API key in ⚙️ Settings first.'); }
+      const k = sessionStorage.getItem(STORAGE_KEY);
+      if (!k || !k.startsWith('AIza')) {
+        $('modal-settings').classList.add('open');
+        throw new Error('Add your Gemini API key in ⚙️ Settings first.');
+      }
       return k;
     }
 
+    /**
+     * Calls Gemini generateContent endpoint and returns parsed JSON.
+     * Uses non-streaming for reliable JSON parsing.
+     * @param {string} prompt - Prompt to send to Gemini
+     * @returns {Promise<Object>} Parsed JSON response
+     * @throws {Error} On network error, quota exceeded, or invalid JSON
+     */
     async function geminiJSON(prompt) {
-      if(!rl.ok()) throw new Error('Rate limit — wait a moment and try again.');
+      if (!rl.ok()) throw new Error('Rate limit — wait a moment and try again.');
       const key = getKey();
-      let pt; if(perf){ pt=trace(perf,'gemini_json'); pt.start(); }
+      let pt; if (perf) { pt = trace(perf, 'gemini_json'); pt.start(); }
       try {
         const res = await fetch(`${GEMINI_BASE}/${GEMINI_MODEL}:generateContent?key=${key}`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ contents:[{role:'user',parts:[{text:prompt}]}], generationConfig:{temperature:0.4,maxOutputTokens:2048} })
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { temperature: JSON_TEMP, maxOutputTokens: JSON_TOKENS }
+          })
         });
-        if(!res.ok){ const e=await res.json().catch(()=>({})); const m=e?.error?.message||'';
-          throw new Error(m.includes('quota')||m.includes('RESOURCE_EXHAUSTED')
-            ? '⚠️ API quota reached. Wait 1 min or add a new key in ⚙️ Settings.' : m||`API Error ${res.status}`);
+        if (!res.ok) {
+          const e = await res.json().catch(() => ({}));
+          const m = e?.error?.message || '';
+          // Provide friendly quota message instead of raw API error
+          throw new Error(m.includes('quota') || m.includes('RESOURCE_EXHAUSTED')
+            ? '⚠️ API quota reached. Wait 1 min or add a new key in ⚙️ Settings.'
+            : m || `API Error ${res.status}`);
         }
         const d = await res.json();
-        return parseJSON(d?.candidates?.[0]?.content?.parts?.[0]?.text||'{}');
-      } finally { if(pt) pt.stop(); }
+        return parseJSON(d?.candidates?.[0]?.content?.parts?.[0]?.text || '{}');
+      } finally {
+        if (pt) pt.stop(); // always stop perf trace
+      }
     }
 
+    /**
+     * Calls Gemini streamGenerateContent endpoint, invoking callback per chunk.
+     * @param {string} prompt - Prompt to send to Gemini
+     * @param {function(string): void} onChunk - Called with each streamed text chunk
+     * @returns {Promise<string>} Complete accumulated response text
+     * @throws {Error} On network error or quota exceeded
+     */
     async function geminiStream(prompt, onChunk) {
-      if(!rl.ok()) throw new Error('Rate limit — wait a moment.');
+      if (!rl.ok()) throw new Error('Rate limit — wait a moment.');
       const key = getKey();
-      let pt; if(perf){ pt=trace(perf,'gemini_stream'); pt.start(); }
+      let pt; if (perf) { pt = trace(perf, 'gemini_stream'); pt.start(); }
       try {
         const res = await fetch(`${GEMINI_BASE}/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${key}`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ contents:[{role:'user',parts:[{text:prompt}]}], generationConfig:{temperature:0.7,maxOutputTokens:3000} })
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { temperature: STREAM_TEMP, maxOutputTokens: STREAM_TOKENS }
+          })
         });
-        if(!res.ok){ const e=await res.json().catch(()=>({})); const m=e?.error?.message||'';
-          throw new Error(m.includes('quota') ? '⚠️ API quota reached. Wait 1 min or add new key in ⚙️ Settings.' : m||`API Error ${res.status}`);
+        if (!res.ok) {
+          const e = await res.json().catch(() => ({}));
+          const m = e?.error?.message || '';
+          throw new Error(m.includes('quota')
+            ? '⚠️ API quota reached. Wait 1 min or add new key in ⚙️ Settings.'
+            : m || `API Error ${res.status}`);
         }
-        const reader=res.body.getReader(); const dec=new TextDecoder(); let buf=''; let full='';
-        while(true){
-          const {done,value}=await reader.read(); if(done) break;
-          buf+=dec.decode(value,{stream:true});
-          const lines=buf.split('\n'); buf=lines.pop();
-          for(const line of lines){
-            if(!line.startsWith('data: ')) continue;
-            const raw=line.slice(6).trim();
-            if(!raw||raw==='[DONE]') continue;
-            try{ const p=JSON.parse(raw); const t=p?.candidates?.[0]?.content?.parts?.[0]?.text||''; if(t){full+=t;onChunk(t);} }catch(_){}
+        const reader = res.body.getReader();
+        const dec = new TextDecoder();
+        let buf = ''; // buffer for incomplete SSE lines
+        let full = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += dec.decode(value, { stream: true }); // accumulate chunk
+          const lines = buf.split('\n');
+          buf = lines.pop(); // retain incomplete last line for next iteration
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const raw = line.slice(6).trim();
+            if (!raw || raw === '[DONE]') continue;
+            try {
+              const p = JSON.parse(raw);
+              const t = p?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              if (t) { full += t; onChunk(t); }
+            } catch (_) { /* skip malformed SSE line */ }
           }
         }
         return full;
-      } finally { if(pt) pt.stop(); }
+      } finally {
+        if (pt) pt.stop(); // always stop perf trace
+      }
     }
 
-    /* ── Render theory text with basic markdown ── */
+    /**
+     * Renders raw Gemini theory text into formatted HTML.
+     * Converts **bold**, 💡 Key insight lines, and paragraphs.
+     * @param {string} text - Raw lesson text from Gemini stream
+     * @returns {string} Safe HTML string ready for innerHTML insertion
+     */
     function renderTheory(text) {
       let html = sanitize(text);
       // Bold text
@@ -775,7 +1006,12 @@
       return paras.map(p=>`<p>${p.replace(/\n/g,'<br>')}</p>`).join('');
     }
 
-    /* ── Generate SVG diagram based on topic keywords ── */
+    /**
+     * Generates and renders an SVG flow diagram into #diagram-area.
+     * @param {string} topic - Topic being visualized
+     * @param {Object} visualData - JSON from Gemini with nodes, title, caption
+     * @returns {string} Caption text for display above diagram
+     */
     function generateDiagram(topic, visualData) {
       const nodes = visualData?.nodes || [];
       const title = visualData?.diagram_title || `How ${topic} Works`;
@@ -873,10 +1109,14 @@
     ═══════════════════════════════════════════ */
 
     /* ── Step 1: Topic submit ── */
-    $('btn-go').onclick = async()=>{
-      const raw=$('topic-input').value.trim();
-      if(!raw||raw.length<2){ alert('Please enter a topic (min 2 characters).'); return; }
-      if(raw.length>MAX_TOPIC_LEN){ alert(`Topic must be under ${MAX_TOPIC_LEN} characters.`); return; }
+    /**
+     * Handles topic submission, validates input, then starts probe flow.
+     * @listens click #btn-go
+     */
+    $('btn-go').onclick = async () => {
+        const raw = $('topic-input').value.trim();
+      const { valid, error } = validateTopic(raw);
+      if (!valid) { alert(error); return; }
       state.topic=sanitize(raw);
       state.sessionXP=0;
       state.probeIdx=0; state.probeCorrect=0; state.probeData=[];
@@ -885,7 +1125,11 @@
     };
 
     /* ── Step 2: Probe ── */
-    async function startProbe(){
+    /**
+     * Initiates the 3-question knowledge probe for the current topic.
+     * Fetches probe questions from Gemini, then renders first question.
+     */
+    async function startProbe() {
       showScreen('screen-probe');
       $('probe-topic-name').textContent=state.topic;
       $('probe-heading').textContent=`Quick check on "${state.topic}"`;
@@ -904,13 +1148,21 @@
       } catch(e){ alert(e.message); showScreen('screen-topic'); }
     }
 
-    function setProbeProgress(n){
+    /**
+     * Updates the probe progress bar width and ARIA valuenow attribute.
+     * @param {number} n - Current question index 0–3
+     */
+    function setProbeProgress(n) {
       const pct=Math.round((n/3)*100);
       $('probe-prog').style.width=pct+'%';
       $('probe-prog').setAttribute('aria-valuenow',pct);
     }
 
-    function renderProbeQ(){
+    /**
+     * Renders the current probe question and answer options into the DOM.
+     * Resets radio buttons and disables Next until an answer is selected.
+     */
+    function renderProbeQ() {
       const q=state.probeData[state.probeIdx];
       if(!q) return;
       $('probe-card').classList.remove('hidden');
@@ -953,7 +1205,11 @@
     $('btn-start-overview').onclick=()=>startOverview();
 
     /* ── Step 3: Overview (Theory + Visual + Examples in parallel) ── */
-    async function startOverview(){
+    /**
+     * Starts the lesson overview, loading Theory + Diagram + Examples in parallel.
+     * All three tabs are fetched simultaneously via Promise.all.
+     */
+    async function startOverview() {
       showScreen('screen-overview');
       $('ov-title').textContent=state.topic;
       $('ov-topic-crumb').textContent=state.topic;
@@ -978,7 +1234,11 @@
       });
     }
 
-    async function loadTheory(){
+    /**
+     * Fetches and streams the theory lesson via Gemini streamGenerateContent.
+     * Updates #theory-content in real time as chunks arrive.
+     */
+    async function loadTheory() {
       const prompt=`You are a world-class ${state.level}-level educator. Topic: "${state.topic}"\n\nWrite a comprehensive theory lesson for a ${state.level} learner.\n\nStructure:\n1. **One-sentence bold summary** of the topic\n2. Background/context (2 paragraphs)\n3. Core mechanism / how it works (2-3 paragraphs)\n4. Key components or stages (mention 3-5)\n5. 💡 Key insight: one memorable takeaway\n\nUse **bold** for key terms. Write in plain paragraphs, no markdown headers. Aim for 400-600 words.`;
       state.theoryText='';
       try {
@@ -996,7 +1256,11 @@
       }
     }
 
-    async function loadVisual(){
+    /**
+     * Fetches diagram node data via Gemini and renders the SVG concept flow.
+     * Populates #diagram-area and #visual-text.
+     */
+    async function loadVisual() {
       const prompt=`Topic: "${state.topic}"\nCreate a visual overview for a diagram.\nRespond ONLY with valid JSON:\n{"diagram_title":"...","caption":"One sentence describing what this diagram shows","nodes":["concept1","concept2","concept3","concept4","concept5"],"description":"2-3 sentences explaining the visual flow between these concepts"}`;
       try {
         state.visualData=await geminiJSON(prompt);
@@ -1010,7 +1274,11 @@
       }
     }
 
-    async function loadExamples(){
+    /**
+     * Fetches real-world examples and analogy from Gemini.
+     * Populates #examples-grid and #analogy-box.
+     */
+    async function loadExamples() {
       const prompt=`Topic: "${state.topic}"\nLevel: ${state.level}\nGenerate 3 real-world examples and 1 analogy.\nRespond ONLY with valid JSON:\n{"examples":[{"icon":"emoji","title":"...","description":"2 sentences max"},{"icon":"emoji","title":"...","description":"2 sentences max"},{"icon":"emoji","title":"...","description":"2 sentences max"}],"analogy":"One vivid analogy comparing ${state.topic} to something everyday"}`;
       try {
         state.examplesData=await geminiJSON(prompt);
@@ -1048,7 +1316,13 @@
     $('btn-deeper').onclick=()=>{ if(state.theoryText) applyAdaptive(`Expand this lesson with more depth, technical detail, and edge cases for an advanced learner. Original: "${state.theoryText.slice(0,1500)}"`,'deeper'); };
     $('btn-example-btn').onclick=()=>{ if(state.topic) applyAdaptive(`Give 3 more very specific, vivid real-world examples of "${state.topic}". Each should be 2-3 sentences and include concrete facts or numbers.`,'examples'); };
 
-    async function applyAdaptive(prompt, action){
+    /**
+     * Applies an adaptive rewrite to the theory content via Gemini.
+     * Re-streams new lesson response into #theory-content.
+     * @param {string} prompt - Adaptive rewrite prompt
+     * @param {string} action - Action name for analytics tracking
+     */
+    async function applyAdaptive(prompt, action) {
       $('theory-content').innerHTML='<div style="display:flex;gap:.5rem;align-items:center;"><div class="spinner"></div> Adapting lesson...</div>';
       $('theory-actions').classList.add('hidden');
       state.theoryText='';
@@ -1086,7 +1360,11 @@
     /* ── Step 4: 5-Question Quiz ── */
     $('btn-take-test').onclick=()=>startQuiz();
 
-    async function startQuiz(){
+    /**
+     * Fetches 5 quiz questions from Gemini and renders the first question.
+     * Uses topic, level, and theory content for personalized question generation.
+     */
+    async function startQuiz() {
       showScreen('screen-quiz');
       $('quiz-topic-crumb').textContent=state.topic;
       $('quiz-loading').classList.remove('hidden');
@@ -1106,7 +1384,11 @@
       } catch(e){ alert(e.message); showScreen('screen-overview'); }
     }
 
-    function renderQuestion(){
+    /**
+     * Renders the current quiz question and options into #current-q-wrap.
+     * Updates the progress bar and resets feedback/next button state.
+     */
+    function renderQuestion() {
       const q=state.quizQuestions[state.qIdx];
       const pct=Math.round((state.qIdx/TOTAL_Q)*100);
       $('quiz-prog').style.width=pct+'%';
@@ -1179,7 +1461,11 @@
     };
 
     /* ── Step 5: Score screen ── */
-    function showScore(){
+    /**
+     * Displays the score screen after all 5 questions are answered.
+     * Animates the SVG score ring, computes XP, and saves progress to storage.
+     */
+    function showScore() {
       showScreen('screen-score');
       $('score-topic-crumb').textContent=state.topic;
 
@@ -1190,8 +1476,9 @@
       updateXP(xpEarned);
 
       // Animate ring
-      const circumference=2*Math.PI*68; // r=68
-      const offset=circumference*(1-pct/100);
+      const circumference = 2 * Math.PI * 68; // r=68 — full circle stroke length
+      // offset = empty portion of ring (animates from full empty to partial fill)
+      const offset = circumference * (1 - pct / 100); // remaining unfilled arc
       setTimeout(()=>{ $('score-circle').style.strokeDashoffset=offset; },100);
 
       $('score-pct').textContent=pct+'%';
@@ -1214,7 +1501,11 @@
       if(analytics) logEvent(analytics,'quiz_completed',{topic:state.topic,score:pct,correct,total:TOTAL_Q,xp:xpEarned});
     }
 
-    function updateXP(amt){
+    /**
+     * Adds XP to session total and updates all XP display elements.
+     * @param {number} amt - XP amount to add to current total
+     */
+    function updateXP(amt) {
       state.totalXP+=amt;
       $('xp-val').textContent=state.totalXP;
     }
@@ -1224,7 +1515,11 @@
     $('btn-new-topic').onclick=()=>{ showScreen('screen-topic'); $('topic-input').value=''; };
 
     /* ── Step 6: Review screen ── */
-    function showReview(){
+    /**
+     * Displays the full answer review screen with all 5 Q&A pairs.
+     * Highlights correct/wrong options and shows explanation for each.
+     */
+    function showReview() {
       showScreen('screen-review');
       $('rev-topic-crumb').textContent=state.topic;
       const list=$('review-list'); list.innerHTML='';
@@ -1243,7 +1538,13 @@
     $('btn-back-score').onclick=()=>showScreen('screen-score');
 
     /* ── Save progress ── */
-    async function saveProgress(correct, pct){
+    /**
+     * Persists session result to localStorage (guest) or Firestore (signed in).
+     * Non-fatal — logs warning on failure without alerting user.
+     * @param {number} correct - Number of correct answers
+     * @param {number} pct - Final score as percentage 0–100
+     */
+    async function saveProgress(correct, pct) {
       const entry={ topic:state.topic, level:state.level, score:pct, correct, total:TOTAL_Q, xp:state.sessionXP, date:Date.now() };
       if(state.isGuest){
         const d=JSON.parse(localStorage.getItem('adaptLearnData')||'{"xp":0,"history":[]}');
@@ -1260,7 +1561,11 @@
     }
 
     /* ── Dashboard ── */
-    async function loadDash(){
+    /**
+     * Loads and renders the learning dashboard from stored session history.
+     * Updates XP totals, topic count, avg score, streak, bar chart, topic list.
+     */
+    async function loadDash() {
       let xp=0, history=[];
       if(state.isGuest){
         const d=JSON.parse(localStorage.getItem('adaptLearnData')||'{"xp":0,"history":[]}');
@@ -1305,7 +1610,11 @@
     $('btn-dash-learn').onclick=()=>{ showScreen('screen-topic'); $('topic-input').value=''; };
 
     /* ── History on topic screen ── */
-    function loadTopicHistory(){
+    /**
+     * Loads previously studied topics from localStorage into the topic screen.
+     * Shows the history section only if past entries exist.
+     */
+    function loadTopicHistory() {
       const d=JSON.parse(localStorage.getItem('adaptLearnData')||'{"history":[]}');
       const hist=d.history||[];
       if(!hist.length){ $('history-wrap').style.display='none'; return; }
