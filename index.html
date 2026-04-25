@@ -910,7 +910,7 @@
             announce(`Navigated to ${id.replace('screen-', '')} screen`);
         };
 
-        const GEMINI_MODEL = 'gemini-2.0-flash';
+        const GEMINI_MODEL = 'gemini-1.5-flash-8b';
 
         async function fetchGemini(promptStr, onStream = null) {
             if (!rateLimiter.check()) throw new Error("Rate limit exceeded. Please wait a minute before requesting more.");
