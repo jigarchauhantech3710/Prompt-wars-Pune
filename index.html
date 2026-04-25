@@ -3,7 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https: wss: data:;">
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline'
+        https://www.gstatic.com
+        https://fonts.googleapis.com;
+      style-src 'self' 'unsafe-inline'
+        https://fonts.googleapis.com
+        https://fonts.gstatic.com;
+      font-src https://fonts.gstatic.com;
+      connect-src
+        https://generativelanguage.googleapis.com
+        https://firestore.googleapis.com
+        https://firebase.googleapis.com
+        https://identitytoolkit.googleapis.com
+        https://www.googleapis.com
+        https://securetoken.googleapis.com
+        https://firebaseinstallations.googleapis.com;
+      img-src 'self' data: https:;
+      frame-src 'none';
+      object-src 'none';
+    ">
     <title>AdaptLearn - AI Learning Companion</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,15 +59,6 @@
             --success-text: #0F5132;
         }
 
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
-            }
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -66,148 +77,95 @@
             font-size: 16px;
         }
 
-        /* Focus styles for Accessibility */
         *:focus-visible {
             outline: 3px solid var(--primary-blue);
             outline-offset: 2px;
         }
 
-        /* Particles animation for landing */
-        @keyframes float {
-            0% { transform: translateY(0px) rotate(0deg); opacity: 0.8; }
-            50% { transform: translateY(-20px) rotate(5deg); opacity: 0.4; }
-            100% { transform: translateY(0px) rotate(0deg); opacity: 0.8; }
-        }
-        
-        .particles {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .particle {
+        .skip-link {
             position: absolute;
+            top: -100%;
+            left: 1rem;
             background: var(--primary-blue);
-            border-radius: 50%;
-            filter: blur(2px);
-            animation: float 6s infinite ease-in-out;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0 0 8px 8px;
+            font-weight: 500;
+            z-index: 9999;
+            transition: top 0.2s;
+        }
+        .skip-link:focus { top: 0; }
+
+        @media (prefers-reduced-motion: no-preference) {
+            @keyframes float {
+                0% { transform: translateY(0px) rotate(0deg); opacity: 0.8; }
+                50% { transform: translateY(-20px) rotate(5deg); opacity: 0.4; }
+                100% { transform: translateY(0px) rotate(0deg); opacity: 0.8; }
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes skeletonLoading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+            
+            .particle { animation: float 6s infinite ease-in-out; }
+            .skeleton { animation: skeletonLoading 1.5s infinite; }
+            .screen.active { animation: fadeIn 0.4s ease forwards; }
         }
 
-        /* Top Nav */
-        header {
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            background: var(--card-bg);
-            z-index: 10;
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
         }
 
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; overflow: hidden; }
+        .particle { position: absolute; background: var(--primary-blue); border-radius: 50%; filter: blur(2px); }
+
+        header { padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); background: var(--card-bg); z-index: 10; }
         .logo { font-weight: 700; font-size: 1.5rem; color: var(--primary-blue); display:flex; align-items:center; gap:8px;}
         .nav-actions { display: flex; gap: 1rem; align-items: center; }
 
-        /* Buttons */
-        button {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 500;
-            cursor: pointer;
-            font-size: 1rem;
-            background-color: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-        }
+        button { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; font-size: 1rem; background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); }
         button:hover { background-color: var(--border-color); }
         button.primary { background-color: var(--primary-blue); color: #fff; border: none; }
         button.primary:hover { background-color: var(--primary-blue-hover); }
         button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* Screen management */
-        .screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-            flex: 1;
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            animation: fadeIn 0.4s ease forwards;
-        }
+        .screen { display: none; flex-direction: column; align-items: center; padding: 2rem; flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; }
         .screen.active { display: flex; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Screen 1: Landing */
         #screen-landing { justify-content: center; text-align: center; }
         .hero-title { font-size: 3rem; margin-bottom: 1rem; font-weight: 700; }
         .hero-tagline { font-size: 1.2rem; color: var(--text-muted); margin-bottom: 3rem; }
         .auth-buttons { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
 
-        /* Screen 2: Topic */
         .search-container { width: 100%; max-width: 600px; margin-top: 4rem; }
-        .search-input {
-            width: 100%;
-            padding: 1.25rem;
-            font-size: 1.25rem;
-            background: var(--card-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            color: var(--text-main);
-            margin-bottom: 1rem;
-        }
+        .search-input { width: 100%; padding: 1.25rem; font-size: 1.25rem; background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 12px; color: var(--text-main); margin-bottom: 1rem; }
         .chips { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; }
         .chip { padding: 0.5rem 1rem; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--border-color); cursor: pointer; font-size: 0.9rem;}
         .chip:hover { border-color: var(--primary-blue); color: var(--primary-blue); }
 
-        /* Screen 3: Probe */
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 2rem;
-            width: 100%;
-            max-width: 700px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 1.5rem;
-        }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 2rem; width: 100%; max-width: 700px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
         .progress-bar-container { width: 100%; background: var(--border-color); height: 8px; border-radius: 4px; margin: 1rem 0 2rem 0; overflow: hidden;}
         .progress-bar-fill { background: var(--accent-green); height: 100%; width: 0%; transition: width 0.3s ease; }
         
-        .radio-option {
-            display: block;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-            background: var(--bg-color);
-        }
+        .radio-option { display: block; padding: 1rem; margin-bottom: 0.5rem; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; background: var(--bg-color); }
         .radio-option:hover { border-color: var(--primary-blue); }
         .radio-option input { margin-right: 1rem; }
 
-        /* Screen 4: Path */
         .roadmap { display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 600px; position: relative;}
-        .roadmap::before {
-            content: ''; position: absolute; left: 24px; top: 0; bottom: 0; width: 2px; background: var(--border-color); z-index: 0;
-        }
-        .roadmap-node {
-            display: flex; align-items: center; gap: 1.5rem; position: relative; z-index: 1;
-            padding: 1rem; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color);
-        }
+        .roadmap::before { content: ''; position: absolute; left: 24px; top: 0; bottom: 0; width: 2px; background: var(--border-color); z-index: 0; }
+        .roadmap-node { display: flex; align-items: center; gap: 1.5rem; position: relative; z-index: 1; padding: 1rem; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); }
         .roadmap-node.active { border-color: var(--primary-blue); box-shadow: 0 0 15px rgba(79, 142, 247, 0.2); }
         .roadmap-node.completed { border-color: var(--accent-green); }
         .node-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--bg-color); border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-weight: bold;}
         .roadmap-node.active .node-icon { border-color: var(--primary-blue); color: var(--primary-blue); }
         .roadmap-node.completed .node-icon { background: var(--accent-green); border-color: var(--accent-green); color: #000; }
 
-        /* Screen 5: Lesson View */
         .lesson-layout { display: flex; gap: 2rem; width: 100%; height: 100%; }
         .lesson-content { flex: 1; }
         .lesson-sidebar { width: 300px; display: flex; flex-direction: column; gap: 1rem; }
@@ -221,17 +179,11 @@
         .action-buttons { display: flex; flex-direction: column; gap: 0.75rem; }
         .breadcrumb { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
 
-        /* Screen 6: Quiz */
-        textarea.open-answer {
-            width: 100%; min-height: 120px; padding: 1rem; border-radius: 8px;
-            background: var(--bg-color); border: 1px solid var(--border-color);
-            color: var(--text-main); margin-top: 1rem; font-size: 1rem; resize: vertical;
-        }
+        textarea.open-answer { width: 100%; min-height: 120px; padding: 1rem; border-radius: 8px; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); margin-top: 1rem; font-size: 1rem; resize: vertical; }
         .feedback-card { padding: 1.5rem; border-radius: 12px; margin-top: 1rem; display: none; }
         .feedback-card.error { background: var(--error-bg); border: 1px solid var(--error-text); display: block;}
         .feedback-card.success { background: var(--success-bg); border: 1px solid var(--success-text); display: block;}
 
-        /* Screen 7: Dashboard */
         .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; width: 100%; }
         .stat-card { text-align: center; }
         .stat-value { font-size: 2.5rem; font-weight: 700; color: var(--primary-blue); margin: 0.5rem 0; }
@@ -239,27 +191,21 @@
         .bar { flex: 1; background: var(--primary-blue); border-radius: 4px 4px 0 0; min-height: 5px; position: relative;}
         .bar span { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-muted); }
 
-        /* Modal */
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 100;
-        }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 100; }
         .modal.active { display: flex; }
         .modal-content { background: var(--card-bg); padding: 2rem; border-radius: 16px; width: 100%; max-width: 500px; border: 1px solid var(--border-color);}
 
-        /* Loading Skeleton */
-        .skeleton { background: linear-gradient(90deg, var(--border-color) 25%, var(--card-bg) 50%, var(--border-color) 75%); background-size: 200% 100%; animation: skeletonLoading 1.5s infinite; border-radius: 4px; }
-        @keyframes skeletonLoading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .skeleton { background: linear-gradient(90deg, var(--border-color) 25%, var(--card-bg) 50%, var(--border-color) 75%); background-size: 200% 100%; border-radius: 4px; }
         .skeleton-text { height: 1.2rem; margin-bottom: 0.5rem; width: 100%; }
         .skeleton-text:last-child { width: 80%; }
         .skeleton-title { height: 2rem; width: 60%; margin-bottom: 1.5rem; }
 
-        /* Utilities */
         .hidden { display: none !important; }
         .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div aria-live="polite" class="sr-only" id="aria-announcer" role="status"></div>
     <div class="particles" id="particles"></div>
 
@@ -273,7 +219,6 @@
         </div>
     </header>
 
-    <!-- Settings Modal -->
     <div id="settings-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
         <div class="modal-content card">
             <h2 id="settings-title" style="margin-bottom: 1rem;">Settings</h2>
@@ -289,7 +234,7 @@
         </div>
     </div>
 
-    <main style="display:flex; flex:1;">
+    <main id="main-content" style="display:flex; flex:1;">
         <!-- Screen 1: Landing -->
         <section id="screen-landing" class="screen active">
             <h1 class="hero-title">AdaptLearn</h1>
@@ -325,7 +270,9 @@
         <!-- Screen 3: Knowledge Probe -->
         <section id="screen-probe" class="screen">
             <h2 id="probe-header" style="margin-bottom: 0.5rem;">Let's see what you already know</h2>
-            <div class="progress-bar-container"><div class="progress-bar-fill" id="probe-progress"></div></div>
+            <div class="progress-bar-container">
+                <div role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Assessment progress" class="progress-bar-fill" id="probe-progress"></div>
+            </div>
             
             <div id="probe-loading" class="card hidden">
                 <div class="skeleton skeleton-title"></div>
@@ -352,9 +299,7 @@
         <!-- Screen 4: Learning Path Overview -->
         <section id="screen-path" class="screen">
             <h2 style="margin-bottom: 2rem;">Your Custom Learning Path</h2>
-            <div class="roadmap" id="roadmap-container">
-                <!-- Nodes generated via JS -->
-            </div>
+            <div class="roadmap" id="roadmap-container"></div>
             <button id="btn-begin-lesson" class="primary" style="margin-top: 2rem;">Begin Lesson 1</button>
         </section>
 
@@ -376,6 +321,13 @@
                     <button id="btn-deeper" class="action-btn">📈 Deeper</button>
                     <button id="btn-example" class="action-btn">💡 Example</button>
                     <button id="btn-tts" class="action-btn">🔊 Read Aloud</button>
+                    <select id="lang-select" aria-label="Translate lesson to language" style="padding:0.75rem; border-radius:8px; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); margin-top:0.5rem; font-size:1rem;">
+                      <option value="">🌐 Translate to...</option>
+                      <option value="Hindi">🇮🇳 Hindi</option>
+                      <option value="Spanish">🇪🇸 Spanish</option>
+                      <option value="French">🇫🇷 French</option>
+                      <option value="Japanese">🇯🇵 Japanese</option>
+                    </select>
                     <hr style="border-color:var(--border-color); margin: 0.5rem 0;">
                     <button id="btn-to-quiz" class="primary">✅ I understand, Quiz me</button>
                 </div>
@@ -394,7 +346,10 @@
             <div id="quiz-content" class="card hidden" style="width: 100%; max-width: 800px;">
                 <div style="margin-bottom: 2rem;">
                     <h3 id="quiz-mcq-q" style="margin-bottom: 1rem;">MCQ Question</h3>
-                    <div id="quiz-mcq-options"></div>
+                    <fieldset style="border:none; padding:0;">
+                      <legend style="font-size:1.1rem; font-weight:500; margin-bottom:1rem;" class="sr-only">Choose the correct answer:</legend>
+                      <div id="quiz-mcq-options"></div>
+                    </fieldset>
                 </div>
                 <div style="margin-bottom: 2rem;">
                     <h3 id="quiz-open-q" style="margin-bottom: 1rem;">Open Question</h3>
@@ -428,9 +383,7 @@
                 </div>
                 <div class="card stat-card" style="grid-column: 1 / -1;">
                     <h3>XP Last 7 Days</h3>
-                    <div class="bar-chart" id="dash-chart">
-                        <!-- Bars injected via JS -->
-                    </div>
+                    <div class="bar-chart" id="dash-chart"></div>
                 </div>
                 <div class="card stat-card" style="grid-column: 1 / -1;">
                     <h3 style="text-align: left; margin-bottom: 1rem;">Your Topics</h3>
@@ -443,15 +396,13 @@
         </section>
     </main>
 
-    <!-- App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-firestore.js";
+        import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-analytics.js";
+        import { getPerformance, trace } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-performance.js";
 
-        // ==========================================
-        // 1. Config & Core Functions
-        // ==========================================
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -461,11 +412,13 @@
             appId: "YOUR_APP_ID"
         };
         
-        let app, auth, db;
+        let app, auth, db, analytics, perf;
         try {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
+            analytics = getAnalytics(app);
+            perf = getPerformance(app);
         } catch(e) { console.warn("Firebase not configured natively. Using guest mode."); }
 
         const state = {
@@ -477,12 +430,24 @@
             attemptNum: 1, sessionXP: 0
         };
 
-        // Utility Functions (match requirements)
+        const rateLimiter = {
+            calls: [],
+            maxCalls: 10,
+            windowMs: 60000,
+            check() {
+                const now = Date.now();
+                this.calls = this.calls.filter(t => now - t < this.windowMs);
+                if (this.calls.length >= this.maxCalls) return false;
+                this.calls.push(now);
+                return true;
+            }
+        };
+
         window.calculateMasteryScore = (correctAnswers, totalQuestions) => totalQuestions === 0 ? 0 : Math.round((correctAnswers / totalQuestions) * 100);
         window.determineLevel = (probeScore) => { if(probeScore >= 80) return 'advanced'; if(probeScore >= 50) return 'intermediate'; return 'beginner'; };
         window.getNextReviewDate = (lastStudied, masteryScore) => { const d = new Date(lastStudied); d.setDate(d.getDate() + (masteryScore >= 80 ? 7 : (masteryScore >= 50 ? 3 : 1))); return d; };
-        window.sanitizeInput = (rawText) => { const t = document.createElement('div'); t.textContent = rawText; return t.innerHTML; };
-        window.parseGeminiJSON = (responseText) => { try { return JSON.parse(responseText.replace(/```json/g, '').replace(/```/g, '').trim()); } catch(e) { throw new Error("Invalid JSON response from Gemini"); } };
+        window.sanitizeInput = (rawText) => { if(!rawText) return ''; const t = document.createElement('div'); t.textContent = rawText; return t.innerHTML; };
+        window.parseGeminiJSON = (responseText) => { try { return JSON.parse(responseText.replace(/```json/gi, '').replace(/```/g, '').trim()); } catch(e) { throw new Error("Invalid JSON response from Gemini"); } };
         window.calculateXP = (correct, attemptNumber) => !correct ? 0 : (attemptNumber === 1 ? 50 : 25);
         window.formatStreak = (days) => `${days} day streak 🔥`;
         window.buildLessonPrompt = (topic, level, concept, step) => `You are a world-class adaptive tutor.\nTopic: "${topic}"\nLearner level: "${level}" (beginner | intermediate | advanced)\nCurrent concept: "${concept}" (Step ${step} of 5)\n\nWrite a clear, engaging lesson on this concept.\nRules:\n- Beginner: use simple language, everyday analogies, avoid jargon\n- Intermediate: use correct terminology, build on basics, include one analogy\n- Advanced: use technical depth, discuss edge cases, compare approaches\n\nStructure your response as:\n1. One-sentence concept summary (bold)\n2. Core explanation (3-4 paragraphs)\n3. Key takeaway (prefixed with "💡 Key insight:")\nDo NOT use markdown headers. Use plain paragraphs only.`;
@@ -495,9 +460,6 @@
         const deeperPrompt = (currentLesson) => `Expand on this lesson for an advanced learner.\nAdd technical depth, discuss limitations or edge cases, and compare to related concepts.\nOriginal: "${currentLesson}"`;
         const examplePrompt = (currentLesson) => `Give one concrete, real-world example that illustrates this concept clearly.\nMake it vivid, specific, and memorable. 3-4 sentences.\nConcept: "${currentLesson}"`;
 
-        // ==========================================
-        // 2. UI Helpers & Gemini API
-        // ==========================================
         const $ = id => document.getElementById(id);
         const announce = msg => { $('aria-announcer').textContent = msg; };
         const showScreen = id => {
@@ -506,63 +468,94 @@
             announce(`Navigated to ${id.replace('screen-', '')} screen`);
         };
 
+        const GEMINI_MODEL = 'gemini-1.5-flash';
+
         async function fetchGemini(promptStr, onStream = null) {
+            if (!rateLimiter.check()) throw new Error("Rate limit exceeded. Please wait a minute before requesting more.");
+
             const key = sessionStorage.getItem('gemini_api_key');
-            if(!key) { $('settings-modal').classList.add('active'); throw new Error("API Key required"); }
-            
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${key}`;
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: promptStr }] }] })
-            });
+            if (!key || !key.startsWith('AIza')) {
+                $('settings-modal').classList.add('active');
+                throw new Error('Please add your Gemini API key in Settings ⚙️');
+            }
 
-            if(!res.ok) throw new Error("API Request Failed: " + res.statusText);
+            let perfTrace;
+            if (perf) { perfTrace = trace(perf, 'gemini_api_call'); perfTrace.start(); }
 
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder('utf-8');
-            let full = '';
+            try {
+                if (!onStream) {
+                    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ role: 'user', parts: [{ text: promptStr }] }],
+                            generationConfig: { temperature: 0.4, maxOutputTokens: 1024 }
+                        })
+                    });
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err?.error?.message || `API Error ${res.status}`);
+                    }
+                    const data = await res.json();
+                    return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                }
 
-            while(true) {
-                const { done, value } = await reader.read();
-                if(done) break;
-                const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n');
-                for(let line of lines) {
-                    if(line.startsWith('data: ')) {
-                        const dataStr = line.substring(6).trim();
-                        if(dataStr === '[DONE]') continue;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${key}`;
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ role: 'user', parts: [{ text: promptStr }] }],
+                        generationConfig: { temperature: 0.7, maxOutputTokens: 2048 }
+                    })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err?.error?.message || `API Error ${res.status}`);
+                }
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let full = '';
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (!line.startsWith('data: ')) continue;
+                        const raw = line.slice(6).trim();
+                        if (!raw || raw === '[DONE]') continue;
                         try {
-                            const data = JSON.parse(dataStr);
-                            const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                            if(text) {
-                                full += text;
-                                if(onStream) onStream(text);
-                            }
-                        } catch(e) {}
+                            const parsed = JSON.parse(raw);
+                            const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                            if (text) { full += text; onStream(text); }
+                        } catch (_) {}
                     }
                 }
+                return full;
+            } finally {
+                if(perfTrace) perfTrace.stop();
             }
-            return full;
         }
 
         async function safeGeminiJSON(promptStr) {
-            const raw = await fetchGemini(promptStr);
+            const raw = await fetchGemini(promptStr, null);
             return window.parseGeminiJSON(raw);
         }
-
-        // ==========================================
-        // 3. Event Listeners & Flow
-        // ==========================================
         
-        // Theme Toggle
         $('btn-theme').onclick = () => {
             const doc = document.documentElement;
-            const isDark = doc.getAttribute('data-theme') === 'dark';
-            doc.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            doc.setAttribute('data-theme', doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
         };
 
-        // Settings Modal
         $('btn-settings').onclick = () => { $('api-key').value = sessionStorage.getItem('gemini_api_key') || ''; $('settings-modal').classList.add('active'); };
         $('btn-close-settings').onclick = () => $('settings-modal').classList.remove('active');
         $('btn-save-settings').onclick = () => {
@@ -571,7 +564,6 @@
             $('settings-modal').classList.remove('active');
         };
 
-        // Auth
         $('btn-guest-login').onclick = () => {
             state.isGuest = true;
             $('xp-display').classList.remove('hidden');
@@ -596,28 +588,31 @@
             $('btn-logout').onclick = () => { signOut(auth); location.reload(); };
         }
 
-        // Topic Search
-        let topicTimeout;
-        $('topic-input').oninput = (e) => {
-            clearTimeout(topicTimeout);
-            topicTimeout = setTimeout(() => {
-                // Debounce logic... can enable start button if len > 2
-            }, 300);
-        };
-
         document.querySelectorAll('.chip').forEach(c => c.onclick = () => {
             $('topic-input').value = c.textContent;
         });
 
         $('btn-start-topic').onclick = async () => {
-            const val = $('topic-input').value.trim();
-            if(!val) return;
-            state.topic = window.sanitizeInput(val);
+            const raw = $('topic-input').value;
+            if (!raw || raw.trim().length < 2) {
+                alert('Please enter a topic (at least 2 characters).');
+                return;
+            }
+            if (raw.length > 200) {
+                alert('Topic must be under 200 characters.');
+                return;
+            }
+
+            state.topic = window.sanitizeInput(raw.trim());
             state.currentStep = 1;
             state.sessionXP = 0;
             
+            if(analytics) logEvent(analytics, 'learning_started', { topic: state.topic });
+
             showScreen('screen-probe');
             $('probe-header').textContent = `Let's see what you already know about ${state.topic}`;
+            $('probe-progress').setAttribute('aria-valuenow', 0);
+            $('probe-progress').style.width = '0%';
             $('probe-content').classList.add('hidden');
             $('probe-result').classList.add('hidden');
             $('probe-loading').classList.remove('hidden');
@@ -629,7 +624,7 @@
                 state.probeStep = 0;
                 renderProbeQuestion();
             } catch(e) {
-                alert("Error generating probe: " + e.message);
+                alert(e.message);
                 showScreen('screen-topic');
             }
         };
@@ -641,7 +636,9 @@
             
             const q = state.probeData[state.probeStep];
             $('probe-q-text').textContent = `${state.probeStep + 1}. ${q.question}`;
-            $('probe-progress').style.width = `${((state.probeStep)/3)*100}%`;
+            const pct = ((state.probeStep)/3)*100;
+            $('probe-progress').style.width = `${pct}%`;
+            $('probe-progress').setAttribute('aria-valuenow', pct);
             
             const opts = $('probe-options');
             opts.innerHTML = '';
@@ -665,6 +662,7 @@
                 renderProbeQuestion();
             } else {
                 $('probe-progress').style.width = `100%`;
+                $('probe-progress').setAttribute('aria-valuenow', 100);
                 $('probe-content').classList.add('hidden');
                 $('probe-result').classList.remove('hidden');
                 
@@ -675,14 +673,10 @@
             }
         };
 
-        // Path Generation
-        $('btn-create-path').onclick = async () => {
+        $('btn-create-path').onclick = () => {
             showScreen('screen-path');
-            $('roadmap-container').innerHTML = '<div class="skeleton skeleton-title"></div>';
-            
-            // Simple deterministic path generation based on level to save API call and time
             const bases = ["Introduction to", "Core Principles of", "Advanced Concepts in", "Practical Applications of", "Mastery of"];
-            state.path = bases.map((b, i) => `${b} ${state.topic}`);
+            state.path = bases.map(b => `${b} ${state.topic}`);
             
             let html = '';
             state.path.forEach((p, i) => {
@@ -698,9 +692,7 @@
             $('roadmap-container').innerHTML = html;
         };
 
-        $('btn-begin-lesson').onclick = () => {
-            loadLesson();
-        };
+        $('btn-begin-lesson').onclick = () => loadLesson();
 
         async function loadLesson() {
             showScreen('screen-lesson');
@@ -709,36 +701,42 @@
             $('lesson-title').textContent = concept;
             $('lesson-text').innerHTML = '<div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div>';
             $('btn-to-quiz').disabled = true;
+            $('lang-select').value = '';
             
+            if(analytics) logEvent(analytics, 'lesson_viewed', { topic: state.topic, level: state.level, step: state.currentStep });
+
             state.lessonText = '';
             try {
                 await fetchGemini(window.buildLessonPrompt(state.topic, state.level, concept, state.currentStep), (chunk) => {
-                    if(state.lessonText === '') $('lesson-text').innerHTML = ''; // clear skeleton
+                    if(state.lessonText === '') $('lesson-text').innerHTML = '';
                     state.lessonText += chunk;
                     $('lesson-text').textContent = state.lessonText;
                 });
                 $('btn-to-quiz').disabled = false;
             } catch(e) {
-                $('lesson-text').innerHTML = `<p style="color:var(--error-text)">Error loading lesson. Please check API key.</p>`;
+                $('lesson-text').innerHTML = `<p style="color:var(--error-text)">${window.sanitizeInput(e.message)}</p>`;
             }
         }
 
-        // Adaptive Actions
-        $('btn-simpler').onclick = () => { if(state.lessonText) applyAdaptive(simplerPrompt(state.lessonText)); };
-        $('btn-deeper').onclick = () => { if(state.lessonText) applyAdaptive(deeperPrompt(state.lessonText)); };
-        $('btn-example').onclick = () => { if(state.lessonText) applyAdaptive(examplePrompt(state.lessonText)); };
+        $('btn-simpler').onclick = () => { if(state.lessonText) applyAdaptive(simplerPrompt(state.lessonText), 'simpler'); };
+        $('btn-deeper').onclick = () => { if(state.lessonText) applyAdaptive(deeperPrompt(state.lessonText), 'deeper'); };
+        $('btn-example').onclick = () => { if(state.lessonText) applyAdaptive(examplePrompt(state.lessonText), 'example'); };
 
-        async function applyAdaptive(prompt) {
+        async function applyAdaptive(prompt, actionName) {
             $('lesson-text').innerHTML = '<div class="skeleton skeleton-text"></div>';
+            if(analytics) logEvent(analytics, 'adaptive_action', { action: actionName });
             state.lessonText = '';
-            await fetchGemini(prompt, (chunk) => {
-                if(state.lessonText === '') $('lesson-text').innerHTML = '';
-                state.lessonText += chunk;
-                $('lesson-text').textContent = state.lessonText;
-            });
+            try {
+                await fetchGemini(prompt, (chunk) => {
+                    if(state.lessonText === '') $('lesson-text').innerHTML = '';
+                    state.lessonText += chunk;
+                    $('lesson-text').textContent = state.lessonText;
+                });
+            } catch(e) {
+                $('lesson-text').innerHTML = `<p style="color:var(--error-text)">${window.sanitizeInput(e.message)}</p>`;
+            }
         }
 
-        // TTS
         $('btn-tts').onclick = () => {
             if(!window.speechSynthesis) return alert("TTS not supported in your browser.");
             window.speechSynthesis.cancel();
@@ -748,7 +746,22 @@
             }
         };
 
-        // Quiz
+        $('lang-select').onchange = async (e) => {
+            const lang = e.target.value;
+            if (!lang || !state.lessonText) return;
+            const el = $('lesson-text');
+            el.textContent = 'Translating...';
+            try {
+                const translated = await fetchGemini(`Translate this lesson to ${lang}. Keep the 💡 Key insight: prefix. Return ONLY the translated text.\n\n${state.lessonText}`, null);
+                state.lessonText = translated;
+                el.textContent = translated;
+                if(analytics) logEvent(analytics, 'lesson_translated', { language: lang });
+            } catch(err) {
+                el.textContent = state.lessonText;
+                alert(err.message);
+            }
+        };
+
         $('btn-to-quiz').onclick = async () => {
             window.speechSynthesis?.cancel();
             showScreen('screen-quiz');
@@ -760,7 +773,6 @@
 
             try {
                 state.currentQuiz = await safeGeminiJSON(quizPrompt(state.topic, state.level, state.path[state.currentStep - 1]));
-                
                 $('quiz-loading').classList.add('hidden');
                 $('quiz-content').classList.remove('hidden');
                 
@@ -776,7 +788,7 @@
                     opts.appendChild(lbl);
                 });
             } catch(e) {
-                alert("Error generating quiz.");
+                alert(e.message);
                 showScreen('screen-lesson');
             }
         };
@@ -815,6 +827,8 @@
                 state.sessionXP += xp;
                 updateXP(xp);
                 
+                if(analytics) logEvent(analytics, 'quiz_passed', { topic: state.topic, xp_earned: xp, attempt: state.attemptNum });
+                
                 $('btn-quiz-next').textContent = "Next Concept →";
                 $('btn-quiz-next').onclick = () => {
                     state.currentStep++;
@@ -830,18 +844,19 @@
                 $('feedback-title').textContent = "Not quite right";
                 $('feedback-text').textContent = openEval.feedback;
                 
-                // Micro lesson for wrong answer
                 $('micro-lesson-container').classList.remove('hidden');
                 $('micro-lesson-text').innerHTML = '<span class="skeleton skeleton-text" style="display:inline-block; width:100px;"></span>';
                 
                 const wrongTxt = !mcqCorrect ? mcqAns.value : openAns;
                 const rightTxt = !mcqCorrect ? state.currentQuiz.mcq.correct : state.currentQuiz.open.model_answer;
                 
-                fetchGemini(microLessonPrompt(state.topic, mcqCorrect ? state.currentQuiz.open.question : state.currentQuiz.mcq.question, wrongTxt, rightTxt), (chunk) => {
-                    const el = $('micro-lesson-text');
-                    if(el.querySelector('.skeleton')) el.innerHTML = '';
-                    el.textContent += chunk;
-                });
+                try {
+                    await fetchGemini(microLessonPrompt(state.topic, mcqCorrect ? state.currentQuiz.open.question : state.currentQuiz.mcq.question, wrongTxt, rightTxt), (chunk) => {
+                        const el = $('micro-lesson-text');
+                        if(el.querySelector('.skeleton')) el.innerHTML = '';
+                        el.textContent += chunk;
+                    });
+                } catch(err) { $('micro-lesson-text').textContent = 'Error loading micro-lesson.'; }
 
                 $('btn-quiz-next').textContent = "Try Again 🔄";
                 $('btn-quiz-next').onclick = () => {
@@ -852,7 +867,6 @@
             }
         };
 
-        // Dashboard & Data
         function updateXP(amount) {
             let curr = parseInt($('xp-val').textContent);
             $('xp-val').textContent = curr + amount;
@@ -869,7 +883,7 @@
                     const docRef = doc(db, 'users', state.user.uid, 'topics', state.topic);
                     await setDoc(docRef, {
                         name: state.topic,
-                        masteryScore: window.calculateMasteryScore(state.totalSteps, state.totalSteps), // simplified
+                        masteryScore: window.calculateMasteryScore(state.totalSteps, state.totalSteps),
                         lastStudied: new Date().toISOString(),
                         nextReview: window.getNextReviewDate(new Date(), 100).toISOString()
                     }, {merge:true});
@@ -883,10 +897,8 @@
                 let data = JSON.parse(localStorage.getItem('adaptLearnData') || '{"xp":0, "topics":[]}');
                 xp = data.xp || 0;
                 topics = data.topics || [];
-            } else if(db && state.user) {
-                // mock load logic for demo
+            } else {
                 xp = parseInt($('xp-val').textContent) || 0;
-                topics = [];
             }
             $('dash-xp').textContent = xp;
             $('xp-val').textContent = xp;
@@ -894,10 +906,9 @@
             $('dash-streak').textContent = window.formatStreak(topics.length > 0 ? 1 : 0);
             
             if(topics.length > 0) {
-                $('dash-topics-list').innerHTML = topics.map(t => `<div style="padding:1rem; border:1px solid var(--border-color); border-radius:8px; margin-bottom:0.5rem; display:flex; justify-content:space-between;"><span>${t.name}</span> <span style="color:var(--accent-green)">Mastered</span></div>`).join('');
+                $('dash-topics-list').innerHTML = topics.map(t => `<div style="padding:1rem; border:1px solid var(--border-color); border-radius:8px; margin-bottom:0.5rem; display:flex; justify-content:space-between;"><span>${window.sanitizeInput(t.name)}</span> <span style="color:var(--accent-green)">Mastered</span></div>`).join('');
             }
 
-            // CSS Bar chart gen
             const chart = $('dash-chart');
             chart.innerHTML = '';
             for(let i=0; i<7; i++) {
@@ -913,7 +924,6 @@
 
         $('btn-dash-home').onclick = () => showScreen('screen-topic');
 
-        // Particle System Init
         const pContainer = $('particles');
         for(let i=0; i<30; i++) {
             const p = document.createElement('div');
