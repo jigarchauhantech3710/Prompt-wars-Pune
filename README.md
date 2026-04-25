@@ -47,3 +47,34 @@ The app establishes your baseline understanding using a generated **Knowledge Pr
 | **Security** | API key is requested via modal and stored *only* in `sessionStorage`. Content Security Policy implemented. XSS prevention via textContent and DOM API instead of innerHTML. |
 | **Performance** | Streamed API processing means < 1 second First Meaningful Paint. 0 external JS libraries or heavy packages to slow down load. |
 | **Zero Dependencies** | Runs immediately by double-clicking `index.html`. Uses modular Firebase imports via unpkg CDN. Tests run using built-in Node assert without a framework. |
+
+## Google Services (7 total)
+
+| Service | How It's Used |
+|---|---|
+| Gemini 1.5 Flash API | Lessons, quizzes, evaluation, micro-lessons, translation |
+| Firebase Auth | Google Sign-In |
+| Firebase Firestore | Progress sync, spaced repetition |
+| Firebase Analytics | Tracks learning events |
+| Firebase Performance | Monitors Gemini API latency |
+| Web Speech API | Text-to-speech read-aloud |
+| Gemini Translation | Multi-language lesson support |
+
+## Security
+
+- API key in sessionStorage only — clears on tab close
+- Input validation: 200 char limit, forbidden pattern check
+- Rate limiting: 10 Gemini calls per minute max
+- Strict CSP header — no wildcard domains
+- XSS: all user input through sanitizeInput()
+- Firestore rules: uid-scoped access only
+
+## Running Tests
+
+```bash
+node app.test.js
+```
+
+## CI Status
+
+[![Tests](https://github.com/jigarchauhantech3710/Prompt-wars-Pune/actions/workflows/test.yml/badge.svg)](https://github.com/jigarchauhantech3710/Prompt-wars-Pune/actions)
