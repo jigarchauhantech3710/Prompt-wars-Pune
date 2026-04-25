@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -94,23 +95,62 @@
             z-index: 9999;
             transition: top 0.2s;
         }
-        .skip-link:focus { top: 0; }
+
+        .skip-link:focus {
+            top: 0;
+        }
 
         @media (prefers-reduced-motion: no-preference) {
             @keyframes float {
-                0% { transform: translateY(0px) rotate(0deg); opacity: 0.8; }
-                50% { transform: translateY(-20px) rotate(5deg); opacity: 0.4; }
-                100% { transform: translateY(0px) rotate(0deg); opacity: 0.8; }
+                0% {
+                    transform: translateY(0px) rotate(0deg);
+                    opacity: 0.8;
+                }
+
+                50% {
+                    transform: translateY(-20px) rotate(5deg);
+                    opacity: 0.4;
+                }
+
+                100% {
+                    transform: translateY(0px) rotate(0deg);
+                    opacity: 0.8;
+                }
             }
+
             @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(10px); }
-                to { opacity: 1; transform: translateY(0); }
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
-            @keyframes skeletonLoading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-            
-            .particle { animation: float 6s infinite ease-in-out; }
-            .skeleton { animation: skeletonLoading 1.5s infinite; }
-            .screen.active { animation: fadeIn 0.4s ease forwards; }
+
+            @keyframes skeletonLoading {
+                0% {
+                    background-position: 200% 0;
+                }
+
+                100% {
+                    background-position: -200% 0;
+                }
+            }
+
+            .particle {
+                animation: float 6s infinite ease-in-out;
+            }
+
+            .skeleton {
+                animation: skeletonLoading 1.5s infinite;
+            }
+
+            .screen.active {
+                animation: fadeIn 0.4s ease forwards;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -122,88 +162,469 @@
             }
         }
 
-        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; overflow: hidden; }
-        .particle { position: absolute; background: var(--primary-blue); border-radius: 50%; filter: blur(2px); }
-
-        header { padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); background: var(--card-bg); z-index: 10; }
-        .logo { font-weight: 700; font-size: 1.5rem; color: var(--primary-blue); display:flex; align-items:center; gap:8px;}
-        .nav-actions { display: flex; gap: 1rem; align-items: center; }
-
-        button { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; font-size: 1rem; background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); }
-        button:hover { background-color: var(--border-color); }
-        button.primary { background-color: var(--primary-blue); color: #fff; border: none; }
-        button.primary:hover { background-color: var(--primary-blue-hover); }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .screen { display: none; flex-direction: column; align-items: center; padding: 2rem; flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; }
-        .screen.active { display: flex; }
-
-        #screen-landing { justify-content: center; text-align: center; }
-        .hero-title { font-size: 3rem; margin-bottom: 1rem; font-weight: 700; }
-        .hero-tagline { font-size: 1.2rem; color: var(--text-muted); margin-bottom: 3rem; }
-        .auth-buttons { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
-
-        .search-container { width: 100%; max-width: 600px; margin-top: 4rem; }
-        .search-input { width: 100%; padding: 1.25rem; font-size: 1.25rem; background: var(--card-bg); border: 2px solid var(--border-color); border-radius: 12px; color: var(--text-main); margin-bottom: 1rem; }
-        .chips { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; }
-        .chip { padding: 0.5rem 1rem; border-radius: 20px; background: var(--card-bg); border: 1px solid var(--border-color); cursor: pointer; font-size: 0.9rem;}
-        .chip:hover { border-color: var(--primary-blue); color: var(--primary-blue); }
-
-        .card { background: var(--card-bg); border-radius: 16px; padding: 2rem; width: 100%; max-width: 700px; border: 1px solid var(--border-color); margin-bottom: 1.5rem; }
-        .progress-bar-container { width: 100%; background: var(--border-color); height: 8px; border-radius: 4px; margin: 1rem 0 2rem 0; overflow: hidden;}
-        .progress-bar-fill { background: var(--accent-green); height: 100%; width: 0%; transition: width 0.3s ease; }
-        
-        .radio-option { display: block; padding: 1rem; margin-bottom: 0.5rem; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; background: var(--bg-color); }
-        .radio-option:hover { border-color: var(--primary-blue); }
-        .radio-option input { margin-right: 1rem; }
-
-        .roadmap { display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 600px; position: relative;}
-        .roadmap::before { content: ''; position: absolute; left: 24px; top: 0; bottom: 0; width: 2px; background: var(--border-color); z-index: 0; }
-        .roadmap-node { display: flex; align-items: center; gap: 1.5rem; position: relative; z-index: 1; padding: 1rem; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); }
-        .roadmap-node.active { border-color: var(--primary-blue); box-shadow: 0 0 15px rgba(79, 142, 247, 0.2); }
-        .roadmap-node.completed { border-color: var(--accent-green); }
-        .node-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--bg-color); border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-weight: bold;}
-        .roadmap-node.active .node-icon { border-color: var(--primary-blue); color: var(--primary-blue); }
-        .roadmap-node.completed .node-icon { background: var(--accent-green); border-color: var(--accent-green); color: #000; }
-
-        .lesson-layout { display: flex; gap: 2rem; width: 100%; height: 100%; }
-        .lesson-content { flex: 1; }
-        .lesson-sidebar { width: 300px; display: flex; flex-direction: column; gap: 1rem; }
-        @media (max-width: 768px) {
-            .lesson-layout { flex-direction: column; }
-            .lesson-sidebar { width: 100%; position: fixed; bottom: 0; left: 0; background: var(--card-bg); padding: 1rem; border-top: 1px solid var(--border-color); z-index: 20; box-shadow: 0 -4px 10px rgba(0,0,0,0.5);}
-            .lesson-content { padding-bottom: 200px; }
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
         }
-        .typewriter-text { line-height: 1.6; font-size: 1.1rem; white-space: pre-wrap; }
-        .typewriter-text p { margin-bottom: 1rem; }
-        .action-buttons { display: flex; flex-direction: column; gap: 0.75rem; }
-        .breadcrumb { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
 
-        textarea.open-answer { width: 100%; min-height: 120px; padding: 1rem; border-radius: 8px; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); margin-top: 1rem; font-size: 1rem; resize: vertical; }
-        .feedback-card { padding: 1.5rem; border-radius: 12px; margin-top: 1rem; display: none; }
-        .feedback-card.error { background: var(--error-bg); border: 1px solid var(--error-text); display: block;}
-        .feedback-card.success { background: var(--success-bg); border: 1px solid var(--success-text); display: block;}
+        .particle {
+            position: absolute;
+            background: var(--primary-blue);
+            border-radius: 50%;
+            filter: blur(2px);
+        }
 
-        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; width: 100%; }
-        .stat-card { text-align: center; }
-        .stat-value { font-size: 2.5rem; font-weight: 700; color: var(--primary-blue); margin: 0.5rem 0; }
-        .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 150px; margin-top: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;}
-        .bar { flex: 1; background: var(--primary-blue); border-radius: 4px 4px 0 0; min-height: 5px; position: relative;}
-        .bar span { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.8rem; color: var(--text-muted); }
+        header {
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--card-bg);
+            z-index: 10;
+        }
 
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 100; }
-        .modal.active { display: flex; }
-        .modal-content { background: var(--card-bg); padding: 2rem; border-radius: 16px; width: 100%; max-width: 500px; border: 1px solid var(--border-color);}
+        .logo {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-        .skeleton { background: linear-gradient(90deg, var(--border-color) 25%, var(--card-bg) 50%, var(--border-color) 75%); background-size: 200% 100%; border-radius: 4px; }
-        .skeleton-text { height: 1.2rem; margin-bottom: 0.5rem; width: 100%; }
-        .skeleton-text:last-child { width: 80%; }
-        .skeleton-title { height: 2rem; width: 60%; margin-bottom: 1.5rem; }
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
 
-        .hidden { display: none !important; }
-        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 1rem;
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        button:hover {
+            background-color: var(--border-color);
+        }
+
+        button.primary {
+            background-color: var(--primary-blue);
+            color: #fff;
+            border: none;
+        }
+
+        button.primary:hover {
+            background-color: var(--primary-blue-hover);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            flex: 1;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        #screen-landing {
+            justify-content: center;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .hero-tagline {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 4rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1.25rem;
+            font-size: 1.25rem;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .chip {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .chip:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 700px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background: var(--border-color);
+            height: 8px;
+            border-radius: 4px;
+            margin: 1rem 0 2rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            background: var(--accent-green);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .radio-option {
+            display: block;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            background: var(--bg-color);
+        }
+
+        .radio-option:hover {
+            border-color: var(--primary-blue);
+        }
+
+        .radio-option input {
+            margin-right: 1rem;
+        }
+
+        .roadmap {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .roadmap::before {
+            content: '';
+            position: absolute;
+            left: 24px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-color);
+            z-index: 0;
+        }
+
+        .roadmap-node {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 1;
+            padding: 1rem;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .roadmap-node.active {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 15px rgba(79, 142, 247, 0.2);
+        }
+
+        .roadmap-node.completed {
+            border-color: var(--accent-green);
+        }
+
+        .node-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--bg-color);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .roadmap-node.active .node-icon {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .roadmap-node.completed .node-icon {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: #000;
+        }
+
+        .lesson-layout {
+            display: flex;
+            gap: 2rem;
+            width: 100%;
+            height: 100%;
+        }
+
+        .lesson-content {
+            flex: 1;
+        }
+
+        .lesson-sidebar {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .lesson-layout {
+                flex-direction: column;
+            }
+
+            .lesson-sidebar {
+                width: 100%;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                background: var(--card-bg);
+                padding: 1rem;
+                border-top: 1px solid var(--border-color);
+                z-index: 20;
+                box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.5);
+            }
+
+            .lesson-content {
+                padding-bottom: 200px;
+            }
+        }
+
+        .typewriter-text {
+            line-height: 1.6;
+            font-size: 1.1rem;
+            white-space: pre-wrap;
+        }
+
+        .typewriter-text p {
+            margin-bottom: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .breadcrumb {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        textarea.open-answer {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            border-radius: 8px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            margin-top: 1rem;
+            font-size: 1rem;
+            resize: vertical;
+        }
+
+        .feedback-card {
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .feedback-card.error {
+            background: var(--error-bg);
+            border: 1px solid var(--error-text);
+            display: block;
+        }
+
+        .feedback-card.success {
+            background: var(--success-bg);
+            border: 1px solid var(--success-text);
+            display: block;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .stat-card {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin: 0.5rem 0;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 150px;
+            margin-top: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .bar {
+            flex: 1;
+            background: var(--primary-blue);
+            border-radius: 4px 4px 0 0;
+            min-height: 5px;
+            position: relative;
+        }
+
+        .bar span {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border-color);
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, var(--border-color) 25%, var(--card-bg) 50%, var(--border-color) 75%);
+            background-size: 200% 100%;
+            border-radius: 4px;
+        }
+
+        .skeleton-text {
+            height: 1.2rem;
+            margin-bottom: 0.5rem;
+            width: 100%;
+        }
+
+        .skeleton-text:last-child {
+            width: 80%;
+        }
+
+        .skeleton-title {
+            height: 2rem;
+            width: 60%;
+            margin-bottom: 1.5rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
     </style>
 </head>
+
 <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <div aria-live="polite" class="sr-only" id="aria-announcer" role="status"></div>
@@ -224,8 +645,10 @@
             <h2 id="settings-title" style="margin-bottom: 1rem;">Settings</h2>
             <div style="margin-bottom: 1.5rem;">
                 <label for="api-key" style="display:block; margin-bottom:0.5rem;">Gemini API Key</label>
-                <input type="password" id="api-key" class="search-input" placeholder="AIzaSy..." style="padding: 0.75rem; font-size: 1rem; margin-bottom:0.5rem;">
-                <p style="font-size:0.85rem; color:var(--text-muted);">Stored securely in your browser's sessionStorage. Never sent to any server.</p>
+                <input type="password" id="api-key" class="search-input" placeholder="AIzaSy..."
+                    style="padding: 0.75rem; font-size: 1rem; margin-bottom:0.5rem;">
+                <p style="font-size:0.85rem; color:var(--text-muted);">Stored securely in your browser's sessionStorage.
+                    Never sent to any server.</p>
             </div>
             <div style="display:flex; justify-content:flex-end; gap:1rem;">
                 <button id="btn-close-settings">Cancel</button>
@@ -241,7 +664,16 @@
             <p class="hero-tagline">Your AI tutor that adapts to you in real-time.</p>
             <div class="auth-buttons">
                 <button id="btn-google-login" class="primary" style="display:flex; align-items:center; gap:8px;">
-                    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 48 48">
+                        <path fill="#EA4335"
+                            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                        <path fill="#4285F4"
+                            d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                        <path fill="#FBBC05"
+                            d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                        <path fill="#34A853"
+                            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                    </svg>
                     Sign in with Google
                 </button>
                 <button id="btn-guest-login">Continue as Guest</button>
@@ -252,14 +684,16 @@
         <section id="screen-topic" class="screen">
             <h2 style="font-size: 2rem; margin-bottom: 1rem;">What do you want to learn today?</h2>
             <div class="search-container">
-                <input type="text" id="topic-input" class="search-input" placeholder="e.g., Quantum Physics, Machine Learning..." aria-label="Topic to learn">
+                <input type="text" id="topic-input" class="search-input"
+                    placeholder="e.g., Quantum Physics, Machine Learning..." aria-label="Topic to learn">
                 <div class="chips" id="topic-suggestions">
                     <span class="chip">Machine Learning</span>
                     <span class="chip">Blockchain</span>
                     <span class="chip">Ancient Rome</span>
                     <span class="chip">Photosynthesis</span>
                 </div>
-                <button id="btn-start-topic" class="primary" style="width:100%; font-size:1.2rem;">Start Learning</button>
+                <button id="btn-start-topic" class="primary" style="width:100%; font-size:1.2rem;">Start
+                    Learning</button>
             </div>
             <div id="history-section" style="margin-top: 4rem; width: 100%; max-width: 600px; display:none;">
                 <h3 style="margin-bottom: 1rem;">Previously Studied</h3>
@@ -271,9 +705,10 @@
         <section id="screen-probe" class="screen">
             <h2 id="probe-header" style="margin-bottom: 0.5rem;">Let's see what you already know</h2>
             <div class="progress-bar-container">
-                <div role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Assessment progress" class="progress-bar-fill" id="probe-progress"></div>
+                <div role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+                    aria-label="Assessment progress" class="progress-bar-fill" id="probe-progress"></div>
             </div>
-            
+
             <div id="probe-loading" class="card hidden">
                 <div class="skeleton skeleton-title"></div>
                 <div class="skeleton skeleton-text"></div>
@@ -284,14 +719,17 @@
             <div id="probe-content" class="card">
                 <h3 id="probe-q-text" style="margin-bottom:1.5rem;">Question...</h3>
                 <div id="probe-options"></div>
-                <button id="btn-probe-next" class="primary" style="margin-top: 1.5rem; width:100%;" disabled>Next</button>
+                <button id="btn-probe-next" class="primary" style="margin-top: 1.5rem; width:100%;"
+                    disabled>Next</button>
             </div>
 
             <div id="probe-result" class="card hidden" style="text-align: center;">
                 <h3 style="margin-bottom:1rem;">Assessment Complete</h3>
                 <div style="font-size:4rem; margin-bottom:1rem;" id="level-emoji">🎯</div>
-                <p style="font-size:1.2rem; margin-bottom:0.5rem;">Detected Level: <strong id="detected-level" style="color:var(--primary-blue); text-transform:capitalize;">Beginner</strong></p>
-                <p style="color:var(--text-muted); margin-bottom: 2rem;">We'll tailor your learning path accordingly.</p>
+                <p style="font-size:1.2rem; margin-bottom:0.5rem;">Detected Level: <strong id="detected-level"
+                        style="color:var(--primary-blue); text-transform:capitalize;">Beginner</strong></p>
+                <p style="color:var(--text-muted); margin-bottom: 2rem;">We'll tailor your learning path accordingly.
+                </p>
                 <button id="btn-create-path" class="primary">Generate Learning Path</button>
             </div>
         </section>
@@ -321,12 +759,13 @@
                     <button id="btn-deeper" class="action-btn">📈 Deeper</button>
                     <button id="btn-example" class="action-btn">💡 Example</button>
                     <button id="btn-tts" class="action-btn">🔊 Read Aloud</button>
-                    <select id="lang-select" aria-label="Translate lesson to language" style="padding:0.75rem; border-radius:8px; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); margin-top:0.5rem; font-size:1rem;">
-                      <option value="">🌐 Translate to...</option>
-                      <option value="Hindi">🇮🇳 Hindi</option>
-                      <option value="Spanish">🇪🇸 Spanish</option>
-                      <option value="French">🇫🇷 French</option>
-                      <option value="Japanese">🇯🇵 Japanese</option>
+                    <select id="lang-select" aria-label="Translate lesson to language"
+                        style="padding:0.75rem; border-radius:8px; background:var(--card-bg); color:var(--text-main); border:1px solid var(--border-color); margin-top:0.5rem; font-size:1rem;">
+                        <option value="">🌐 Translate to...</option>
+                        <option value="Hindi">🇮🇳 Hindi</option>
+                        <option value="Spanish">🇪🇸 Spanish</option>
+                        <option value="French">🇫🇷 French</option>
+                        <option value="Japanese">🇯🇵 Japanese</option>
                     </select>
                     <hr style="border-color:var(--border-color); margin: 0.5rem 0;">
                     <button id="btn-to-quiz" class="primary">✅ I understand, Quiz me</button>
@@ -347,13 +786,15 @@
                 <div style="margin-bottom: 2rem;">
                     <h3 id="quiz-mcq-q" style="margin-bottom: 1rem;">MCQ Question</h3>
                     <fieldset style="border:none; padding:0;">
-                      <legend style="font-size:1.1rem; font-weight:500; margin-bottom:1rem;" class="sr-only">Choose the correct answer:</legend>
-                      <div id="quiz-mcq-options"></div>
+                        <legend style="font-size:1.1rem; font-weight:500; margin-bottom:1rem;" class="sr-only">Choose
+                            the correct answer:</legend>
+                        <div id="quiz-mcq-options"></div>
                     </fieldset>
                 </div>
                 <div style="margin-bottom: 2rem;">
                     <h3 id="quiz-open-q" style="margin-bottom: 1rem;">Open Question</h3>
-                    <textarea id="quiz-open-ans" class="open-answer" placeholder="Type your explanation here..."></textarea>
+                    <textarea id="quiz-open-ans" class="open-answer"
+                        placeholder="Type your explanation here..."></textarea>
                 </div>
                 <button id="btn-submit-quiz" class="primary" style="width: 100%;">Submit Answers</button>
             </div>
@@ -361,7 +802,8 @@
             <div id="quiz-feedback" class="feedback-card" style="width: 100%; max-width: 800px;">
                 <h3 id="feedback-title" style="margin-bottom: 0.5rem;">Result</h3>
                 <p id="feedback-text" style="line-height: 1.5;"></p>
-                <div id="micro-lesson-container" class="hidden" style="margin-top: 1rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                <div id="micro-lesson-container" class="hidden"
+                    style="margin-top: 1rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px;">
                     <strong>Micro-Lesson:</strong> <span id="micro-lesson-text"></span>
                 </div>
                 <button id="btn-quiz-next" class="primary" style="margin-top: 1.5rem; width: 100%;">Next</button>
@@ -411,7 +853,7 @@
             messagingSenderId: "YOUR_SENDER_ID",
             appId: "YOUR_APP_ID"
         };
-        
+
         let app, auth, db, analytics, perf;
         try {
             app = initializeApp(firebaseConfig);
@@ -419,7 +861,7 @@
             db = getFirestore(app);
             analytics = getAnalytics(app);
             perf = getPerformance(app);
-        } catch(e) { console.warn("Firebase not configured natively. Using guest mode."); }
+        } catch (e) { console.warn("Firebase not configured natively. Using guest mode."); }
 
         const state = {
             user: null, isGuest: true,
@@ -444,10 +886,10 @@
         };
 
         window.calculateMasteryScore = (correctAnswers, totalQuestions) => totalQuestions === 0 ? 0 : Math.round((correctAnswers / totalQuestions) * 100);
-        window.determineLevel = (probeScore) => { if(probeScore >= 80) return 'advanced'; if(probeScore >= 50) return 'intermediate'; return 'beginner'; };
+        window.determineLevel = (probeScore) => { if (probeScore >= 80) return 'advanced'; if (probeScore >= 50) return 'intermediate'; return 'beginner'; };
         window.getNextReviewDate = (lastStudied, masteryScore) => { const d = new Date(lastStudied); d.setDate(d.getDate() + (masteryScore >= 80 ? 7 : (masteryScore >= 50 ? 3 : 1))); return d; };
-        window.sanitizeInput = (rawText) => { if(!rawText) return ''; const t = document.createElement('div'); t.textContent = rawText; return t.innerHTML; };
-        window.parseGeminiJSON = (responseText) => { try { return JSON.parse(responseText.replace(/```json/gi, '').replace(/```/g, '').trim()); } catch(e) { throw new Error("Invalid JSON response from Gemini"); } };
+        window.sanitizeInput = (rawText) => { if (!rawText) return ''; const t = document.createElement('div'); t.textContent = rawText; return t.innerHTML; };
+        window.parseGeminiJSON = (responseText) => { try { return JSON.parse(responseText.replace(/```json/gi, '').replace(/```/g, '').trim()); } catch (e) { throw new Error("Invalid JSON response from Gemini"); } };
         window.calculateXP = (correct, attemptNumber) => !correct ? 0 : (attemptNumber === 1 ? 50 : 25);
         window.formatStreak = (days) => `${days} day streak 🔥`;
         window.buildLessonPrompt = (topic, level, concept, step) => `You are a world-class adaptive tutor.\nTopic: "${topic}"\nLearner level: "${level}" (beginner | intermediate | advanced)\nCurrent concept: "${concept}" (Step ${step} of 5)\n\nWrite a clear, engaging lesson on this concept.\nRules:\n- Beginner: use simple language, everyday analogies, avoid jargon\n- Intermediate: use correct terminology, build on basics, include one analogy\n- Advanced: use technical depth, discuss edge cases, compare approaches\n\nStructure your response as:\n1. One-sentence concept summary (bold)\n2. Core explanation (3-4 paragraphs)\n3. Key takeaway (prefixed with "💡 Key insight:")\nDo NOT use markdown headers. Use plain paragraphs only.`;
@@ -468,7 +910,7 @@
             announce(`Navigated to ${id.replace('screen-', '')} screen`);
         };
 
-        const GEMINI_MODEL = 'gemini-1.5-flash-latest';
+        const GEMINI_MODEL = 'gemini-2.0-flash';
 
         async function fetchGemini(promptStr, onStream = null) {
             if (!rateLimiter.check()) throw new Error("Rate limit exceeded. Please wait a minute before requesting more.");
@@ -537,12 +979,12 @@
                             const parsed = JSON.parse(raw);
                             const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || '';
                             if (text) { full += text; onStream(text); }
-                        } catch (_) {}
+                        } catch (_) { }
                     }
                 }
                 return full;
             } finally {
-                if(perfTrace) perfTrace.stop();
+                if (perfTrace) perfTrace.stop();
             }
         }
 
@@ -550,7 +992,7 @@
             const raw = await fetchGemini(promptStr, null);
             return window.parseGeminiJSON(raw);
         }
-        
+
         $('btn-theme').onclick = () => {
             const doc = document.documentElement;
             doc.setAttribute('data-theme', doc.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
@@ -560,7 +1002,7 @@
         $('btn-close-settings').onclick = () => $('settings-modal').classList.remove('active');
         $('btn-save-settings').onclick = () => {
             const val = $('api-key').value.trim();
-            if(val) sessionStorage.setItem('gemini_api_key', val);
+            if (val) sessionStorage.setItem('gemini_api_key', val);
             $('settings-modal').classList.remove('active');
         };
 
@@ -571,7 +1013,7 @@
             loadDashboardData();
         };
 
-        if(auth) {
+        if (auth) {
             $('btn-google-login').onclick = async () => {
                 try {
                     const res = await signInWithPopup(auth, new GoogleAuthProvider());
@@ -583,7 +1025,7 @@
                     $('btn-guest-login').classList.add('hidden');
                     showScreen('screen-topic');
                     loadDashboardData();
-                } catch(e) { alert("Login failed: " + e.message); }
+                } catch (e) { alert("Login failed: " + e.message); }
             };
             $('btn-logout').onclick = () => { signOut(auth); location.reload(); };
         }
@@ -606,8 +1048,8 @@
             state.topic = window.sanitizeInput(raw.trim());
             state.currentStep = 1;
             state.sessionXP = 0;
-            
-            if(analytics) logEvent(analytics, 'learning_started', { topic: state.topic });
+
+            if (analytics) logEvent(analytics, 'learning_started', { topic: state.topic });
 
             showScreen('screen-probe');
             $('probe-header').textContent = `Let's see what you already know about ${state.topic}`;
@@ -616,14 +1058,14 @@
             $('probe-content').classList.add('hidden');
             $('probe-result').classList.add('hidden');
             $('probe-loading').classList.remove('hidden');
-            
+
             try {
                 const data = await safeGeminiJSON(probePrompt(state.topic));
                 state.probeData = data.questions;
                 state.probeScore = 0;
                 state.probeStep = 0;
                 renderProbeQuestion();
-            } catch(e) {
+            } catch (e) {
                 alert(e.message);
                 showScreen('screen-topic');
             }
@@ -633,13 +1075,13 @@
             $('probe-loading').classList.add('hidden');
             $('probe-content').classList.remove('hidden');
             $('btn-probe-next').disabled = true;
-            
+
             const q = state.probeData[state.probeStep];
             $('probe-q-text').textContent = `${state.probeStep + 1}. ${q.question}`;
-            const pct = ((state.probeStep)/3)*100;
+            const pct = ((state.probeStep) / 3) * 100;
             $('probe-progress').style.width = `${pct}%`;
             $('probe-progress').setAttribute('aria-valuenow', pct);
-            
+
             const opts = $('probe-options');
             opts.innerHTML = '';
             q.options.forEach(opt => {
@@ -653,19 +1095,19 @@
 
         $('btn-probe-next').onclick = () => {
             const selected = document.querySelector('input[name="probe-ans"]:checked');
-            if(!selected) return;
+            if (!selected) return;
             const q = state.probeData[state.probeStep];
-            if(selected.value === q.correct) state.probeScore++;
-            
+            if (selected.value === q.correct) state.probeScore++;
+
             state.probeStep++;
-            if(state.probeStep < 3) {
+            if (state.probeStep < 3) {
                 renderProbeQuestion();
             } else {
                 $('probe-progress').style.width = `100%`;
                 $('probe-progress').setAttribute('aria-valuenow', 100);
                 $('probe-content').classList.add('hidden');
                 $('probe-result').classList.remove('hidden');
-                
+
                 const scorePerc = window.calculateMasteryScore(state.probeScore, 3);
                 state.level = window.determineLevel(scorePerc);
                 $('detected-level').textContent = state.level;
@@ -677,12 +1119,12 @@
             showScreen('screen-path');
             const bases = ["Introduction to", "Core Principles of", "Advanced Concepts in", "Practical Applications of", "Mastery of"];
             state.path = bases.map(b => `${b} ${state.topic}`);
-            
+
             let html = '';
             state.path.forEach((p, i) => {
                 html += `
-                <div class="roadmap-node ${i===0 ? 'active' : ''}" id="node-${i}">
-                    <div class="node-icon">${i+1}</div>
+                <div class="roadmap-node ${i === 0 ? 'active' : ''}" id="node-${i}">
+                    <div class="node-icon">${i + 1}</div>
                     <div>
                         <h3 style="font-size:1.1rem; margin-bottom:4px;">${p}</h3>
                         <p style="font-size:0.85rem; color:var(--text-muted);">Est. 5 mins</p>
@@ -702,45 +1144,45 @@
             $('lesson-text').innerHTML = '<div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div>';
             $('btn-to-quiz').disabled = true;
             $('lang-select').value = '';
-            
-            if(analytics) logEvent(analytics, 'lesson_viewed', { topic: state.topic, level: state.level, step: state.currentStep });
+
+            if (analytics) logEvent(analytics, 'lesson_viewed', { topic: state.topic, level: state.level, step: state.currentStep });
 
             state.lessonText = '';
             try {
                 await fetchGemini(window.buildLessonPrompt(state.topic, state.level, concept, state.currentStep), (chunk) => {
-                    if(state.lessonText === '') $('lesson-text').innerHTML = '';
+                    if (state.lessonText === '') $('lesson-text').innerHTML = '';
                     state.lessonText += chunk;
                     $('lesson-text').textContent = state.lessonText;
                 });
                 $('btn-to-quiz').disabled = false;
-            } catch(e) {
+            } catch (e) {
                 $('lesson-text').innerHTML = `<p style="color:var(--error-text)">${window.sanitizeInput(e.message)}</p>`;
             }
         }
 
-        $('btn-simpler').onclick = () => { if(state.lessonText) applyAdaptive(simplerPrompt(state.lessonText), 'simpler'); };
-        $('btn-deeper').onclick = () => { if(state.lessonText) applyAdaptive(deeperPrompt(state.lessonText), 'deeper'); };
-        $('btn-example').onclick = () => { if(state.lessonText) applyAdaptive(examplePrompt(state.lessonText), 'example'); };
+        $('btn-simpler').onclick = () => { if (state.lessonText) applyAdaptive(simplerPrompt(state.lessonText), 'simpler'); };
+        $('btn-deeper').onclick = () => { if (state.lessonText) applyAdaptive(deeperPrompt(state.lessonText), 'deeper'); };
+        $('btn-example').onclick = () => { if (state.lessonText) applyAdaptive(examplePrompt(state.lessonText), 'example'); };
 
         async function applyAdaptive(prompt, actionName) {
             $('lesson-text').innerHTML = '<div class="skeleton skeleton-text"></div>';
-            if(analytics) logEvent(analytics, 'adaptive_action', { action: actionName });
+            if (analytics) logEvent(analytics, 'adaptive_action', { action: actionName });
             state.lessonText = '';
             try {
                 await fetchGemini(prompt, (chunk) => {
-                    if(state.lessonText === '') $('lesson-text').innerHTML = '';
+                    if (state.lessonText === '') $('lesson-text').innerHTML = '';
                     state.lessonText += chunk;
                     $('lesson-text').textContent = state.lessonText;
                 });
-            } catch(e) {
+            } catch (e) {
                 $('lesson-text').innerHTML = `<p style="color:var(--error-text)">${window.sanitizeInput(e.message)}</p>`;
             }
         }
 
         $('btn-tts').onclick = () => {
-            if(!window.speechSynthesis) return alert("TTS not supported in your browser.");
+            if (!window.speechSynthesis) return alert("TTS not supported in your browser.");
             window.speechSynthesis.cancel();
-            if(state.lessonText) {
+            if (state.lessonText) {
                 const u = new SpeechSynthesisUtterance(state.lessonText);
                 window.speechSynthesis.speak(u);
             }
@@ -755,8 +1197,8 @@
                 const translated = await fetchGemini(`Translate this lesson to ${lang}. Keep the 💡 Key insight: prefix. Return ONLY the translated text.\n\n${state.lessonText}`, null);
                 state.lessonText = translated;
                 el.textContent = translated;
-                if(analytics) logEvent(analytics, 'lesson_translated', { language: lang });
-            } catch(err) {
+                if (analytics) logEvent(analytics, 'lesson_translated', { language: lang });
+            } catch (err) {
                 el.textContent = state.lessonText;
                 alert(err.message);
             }
@@ -775,10 +1217,10 @@
                 state.currentQuiz = await safeGeminiJSON(quizPrompt(state.topic, state.level, state.path[state.currentStep - 1]));
                 $('quiz-loading').classList.add('hidden');
                 $('quiz-content').classList.remove('hidden');
-                
+
                 $('quiz-mcq-q').textContent = state.currentQuiz.mcq.question;
                 $('quiz-open-q').textContent = state.currentQuiz.open.question;
-                
+
                 const opts = $('quiz-mcq-options');
                 opts.innerHTML = '';
                 state.currentQuiz.mcq.options.forEach(opt => {
@@ -787,7 +1229,7 @@
                     lbl.innerHTML = `<input type="radio" name="quiz-mcq" value="${opt[0]}"> ${window.sanitizeInput(opt)}`;
                     opts.appendChild(lbl);
                 });
-            } catch(e) {
+            } catch (e) {
                 alert(e.message);
                 showScreen('screen-lesson');
             }
@@ -796,43 +1238,43 @@
         $('btn-submit-quiz').onclick = async () => {
             const mcqAns = document.querySelector('input[name="quiz-mcq"]:checked');
             const openAns = $('quiz-open-ans').value.trim();
-            
-            if(!mcqAns || !openAns) return alert("Please answer both questions.");
-            
+
+            if (!mcqAns || !openAns) return alert("Please answer both questions.");
+
             $('btn-submit-quiz').disabled = true;
             $('btn-submit-quiz').textContent = 'Evaluating...';
 
             const mcqCorrect = mcqAns.value === state.currentQuiz.mcq.correct;
             let openEval = { passed: false, feedback: "Error evaluating." };
-            
+
             try {
                 openEval = await safeGeminiJSON(evalPrompt(state.currentQuiz.open.question, state.currentQuiz.open.model_answer, state.currentQuiz.open.keywords, openAns));
-            } catch(e) { console.error(e); }
+            } catch (e) { console.error(e); }
 
             $('btn-submit-quiz').disabled = false;
             $('btn-submit-quiz').textContent = 'Submit Answers';
-            
+
             $('quiz-content').classList.add('hidden');
             const feedbackBox = $('quiz-feedback');
             feedbackBox.className = 'feedback-card';
             $('micro-lesson-container').classList.add('hidden');
             feedbackBox.classList.remove('hidden');
 
-            if(mcqCorrect && openEval.passed) {
+            if (mcqCorrect && openEval.passed) {
                 feedbackBox.classList.add('success');
                 $('feedback-title').textContent = "Excellent!";
                 $('feedback-text').textContent = "You nailed it. " + openEval.feedback;
-                
+
                 const xp = window.calculateXP(true, state.attemptNum);
                 state.sessionXP += xp;
                 updateXP(xp);
-                
-                if(analytics) logEvent(analytics, 'quiz_passed', { topic: state.topic, xp_earned: xp, attempt: state.attemptNum });
-                
+
+                if (analytics) logEvent(analytics, 'quiz_passed', { topic: state.topic, xp_earned: xp, attempt: state.attemptNum });
+
                 $('btn-quiz-next').textContent = "Next Concept →";
                 $('btn-quiz-next').onclick = () => {
                     state.currentStep++;
-                    if(state.currentStep > state.totalSteps) {
+                    if (state.currentStep > state.totalSteps) {
                         saveProgress();
                         showDashboard();
                     } else {
@@ -843,20 +1285,20 @@
                 feedbackBox.classList.add('error');
                 $('feedback-title').textContent = "Not quite right";
                 $('feedback-text').textContent = openEval.feedback;
-                
+
                 $('micro-lesson-container').classList.remove('hidden');
                 $('micro-lesson-text').innerHTML = '<span class="skeleton skeleton-text" style="display:inline-block; width:100px;"></span>';
-                
+
                 const wrongTxt = !mcqCorrect ? mcqAns.value : openAns;
                 const rightTxt = !mcqCorrect ? state.currentQuiz.mcq.correct : state.currentQuiz.open.model_answer;
-                
+
                 try {
                     await fetchGemini(microLessonPrompt(state.topic, mcqCorrect ? state.currentQuiz.open.question : state.currentQuiz.mcq.question, wrongTxt, rightTxt), (chunk) => {
                         const el = $('micro-lesson-text');
-                        if(el.querySelector('.skeleton')) el.innerHTML = '';
+                        if (el.querySelector('.skeleton')) el.innerHTML = '';
                         el.textContent += chunk;
                     });
-                } catch(err) { $('micro-lesson-text').textContent = 'Error loading micro-lesson.'; }
+                } catch (err) { $('micro-lesson-text').textContent = 'Error loading micro-lesson.'; }
 
                 $('btn-quiz-next').textContent = "Try Again 🔄";
                 $('btn-quiz-next').onclick = () => {
@@ -873,12 +1315,12 @@
         }
 
         async function saveProgress() {
-            if(state.isGuest) {
+            if (state.isGuest) {
                 let data = JSON.parse(localStorage.getItem('adaptLearnData') || '{"xp":0, "topics":[]}');
                 data.xp += state.sessionXP;
                 data.topics.push({ name: state.topic, date: Date.now() });
                 localStorage.setItem('adaptLearnData', JSON.stringify(data));
-            } else if(db && state.user) {
+            } else if (db && state.user) {
                 try {
                     const docRef = doc(db, 'users', state.user.uid, 'topics', state.topic);
                     await setDoc(docRef, {
@@ -886,14 +1328,14 @@
                         masteryScore: window.calculateMasteryScore(state.totalSteps, state.totalSteps),
                         lastStudied: new Date().toISOString(),
                         nextReview: window.getNextReviewDate(new Date(), 100).toISOString()
-                    }, {merge:true});
-                } catch(e) { console.error("Firestore save error", e); }
+                    }, { merge: true });
+                } catch (e) { console.error("Firestore save error", e); }
             }
         }
 
         async function loadDashboardData() {
             let xp = 0, topics = [];
-            if(state.isGuest) {
+            if (state.isGuest) {
                 let data = JSON.parse(localStorage.getItem('adaptLearnData') || '{"xp":0, "topics":[]}');
                 xp = data.xp || 0;
                 topics = data.topics || [];
@@ -904,16 +1346,16 @@
             $('xp-val').textContent = xp;
             $('dash-concepts').textContent = topics.length * 5;
             $('dash-streak').textContent = window.formatStreak(topics.length > 0 ? 1 : 0);
-            
-            if(topics.length > 0) {
+
+            if (topics.length > 0) {
                 $('dash-topics-list').innerHTML = topics.map(t => `<div style="padding:1rem; border:1px solid var(--border-color); border-radius:8px; margin-bottom:0.5rem; display:flex; justify-content:space-between;"><span>${window.sanitizeInput(t.name)}</span> <span style="color:var(--accent-green)">Mastered</span></div>`).join('');
             }
 
             const chart = $('dash-chart');
             chart.innerHTML = '';
-            for(let i=0; i<7; i++) {
+            for (let i = 0; i < 7; i++) {
                 const height = Math.random() * 100 + 20;
-                chart.innerHTML += `<div class="bar" style="height:${height}px"><span>D${i+1}</span></div>`;
+                chart.innerHTML += `<div class="bar" style="height:${height}px"><span>D${i + 1}</span></div>`;
             }
         }
 
@@ -925,7 +1367,7 @@
         $('btn-dash-home').onclick = () => showScreen('screen-topic');
 
         const pContainer = $('particles');
-        for(let i=0; i<30; i++) {
+        for (let i = 0; i < 30; i++) {
             const p = document.createElement('div');
             p.className = 'particle';
             p.style.width = Math.random() * 10 + 5 + 'px';
@@ -937,4 +1379,5 @@
         }
     </script>
 </body>
+
 </html>
